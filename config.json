@@ -22,9 +22,9 @@
     }
   },
   "MinecraftLogListener": {
-    "mode": "socket",
     "enc": "gbk",
     "host": "127.0.0.1",
-    "port": 25334
+    "port": 25334,
+    "mode": "socket"
   }
 }
