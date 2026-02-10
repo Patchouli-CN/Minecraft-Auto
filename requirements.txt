@@ -6,3 +6,4 @@ pyperclip==1.11.0
 pytesseract==0.3.13
 pywin32==311
 rich
+py4j
