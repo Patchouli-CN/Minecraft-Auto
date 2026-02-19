@@ -83,13 +83,17 @@ class ConfigSession:
                     raise
 
 class Inject:
-    def __init__(self, at: Optional[set[str]] = None, config_file: Optional[Path] = None):
+    def __init__(self, name: str | None = None, 
+        at: Optional[set[str]] = None, 
+        config_file: Optional[Path] = None
+    ) -> None:
         self.conf_path = config_file or _CONF_FILE
         self._fields = set(at) if at else None
+        self._conf_name = name
 
     def __call__(self, cls: type):
         original_init = cls.__init__
-        class_key = cls.__qualname__  # 使用完整限定名，如 "MyClass" 或 "Outer.Inner"
+        conf_name = self._conf_name or cls.__qualname__  # 使用类名或自定义名，如 "MyClass" 或 "Outer.Inner"
 
         def new_init(instance, *args, **kwargs):
             original_init(instance, *args, **kwargs)
@@ -104,7 +108,7 @@ class Inject:
 
             fields_to_inject = self._fields or set(field_types.keys())
 
-            with ConfigSession(self.conf_path, instance, field_types, class_key, fields_to_inject):
+            with ConfigSession(self.conf_path, instance, field_types, conf_name, fields_to_inject):
                 pass
 
         cls.__init__ = new_init
