@@ -176,9 +176,9 @@ class SmartSerializer:
             if self._detect_cycles and _seen is not None and isinstance(value, (list, tuple, set, frozenset, dict, Mapping)):
                 _seen.discard(id(value))
     
-    def _deserialize_impl(self, json_val: Any, target_type: Any) -> Any:
+    def _deserialize_impl(self, ser_value: Any, target_type: Any) -> Any:
         """实际的反序列化实现"""
-        if json_val is None:
+        if ser_value is None:
             if self._is_optional_type(target_type):
                 return None
             raise ValueError(f"Non-optional field requires non-null value, got null for type {target_type}")
@@ -188,13 +188,13 @@ class SmartSerializer:
         
         # 注册类型优先
         if main_type in SmartSerializer._DESERIALIZERS:
-            return SmartSerializer._DESERIALIZERS[main_type](json_val)
+            return SmartSerializer._DESERIALIZERS[main_type](ser_value)
         
         # 泛型容器
         origin = get_origin(main_type)
         if origin in (list, tuple, set, frozenset):
             item_type = get_args(main_type)[0] if get_args(main_type) else Any
-            items = [self._deserialize_impl(item, item_type) for item in json_val]
+            items = [self._deserialize_impl(item, item_type) for item in ser_value]
             if origin is tuple:
                 return tuple(items)
             elif origin is frozenset:
@@ -205,55 +205,55 @@ class SmartSerializer:
         
         elif origin is dict or main_type is dict:
             key_type, val_type = (get_args(main_type) + (Any, Any))[:2]
-            if not isinstance(json_val, dict):
-                raise ValueError(f"Expected dict, got {type(json_val)} for {main_type}")
+            if not isinstance(ser_value, dict):
+                raise ValueError(f"Expected dict, got {type(ser_value)} for {main_type}")
             return {
                 self._deserialize_impl(k, key_type): self._deserialize_impl(v, val_type)
-                for k, v in json_val.items()
+                for k, v in ser_value.items()
             }
         
         # 基础类型
         if main_type in (str, int, float, bool):
-            if type(json_val) is main_type:
-                return json_val
-            return main_type(json_val)
+            if type(ser_value) is main_type:
+                return ser_value
+            return main_type(ser_value)
         
         # dataclass 支持
         if dataclasses.is_dataclass(main_type):
-            if not isinstance(json_val, dict):
-                raise ValueError(f"Expected dict for dataclass {main_type}, got {type(json_val)}")
+            if not isinstance(ser_value, dict):
+                raise ValueError(f"Expected dict for dataclass {main_type}, got {type(ser_value)}")
             field_types = {f.name: f.type for f in dataclasses.fields(main_type)}
             kwargs = {
                 k: self._deserialize_impl(v, field_types.get(k, Any))
-                for k, v in json_val.items()
+                for k, v in ser_value.items()
             }
             return main_type(**kwargs) # type: ignore
         
         # 自定义类：尝试用 dict 初始化
-        if isinstance(main_type, type) and not isinstance(json_val, main_type):
-            if isinstance(json_val, dict):
-                return main_type(**json_val)
-            raise ValueError(f"Cannot construct {main_type} from non-dict value: {json_val}")
+        if isinstance(main_type, type) and not isinstance(ser_value, main_type):
+            if isinstance(ser_value, dict):
+                return main_type(**ser_value)
+            raise ValueError(f"Cannot construct {main_type} from non-dict value: {ser_value}")
         
         # 已是目标类型
-        return json_val
+        return ser_value
     
     def serialize(self, value: Any, target_type: Any = None) -> Any:
-        """序列化为 JSON 兼容对象（带缓存）"""
+        """序列化为兼容对象（带缓存）"""
         return self._serialize_cache(value, target_type, None)
     
-    def deserialize(self, json_val: Any, target_type: Any) -> Any:
+    def deserialize(self, ser_value: Any, target_type: Any) -> Any:
         """反序列化为 Python 对象（带缓存）"""
-        return self._deserialize_cache(json_val, target_type)
+        return self._deserialize_cache(ser_value, target_type)
     
     def dumps(self, obj: Any, type_hint: Any = None, **kwargs) -> str:
-        """序列化为 JSON 字符串"""
+        """序列化为字符串"""
         serialized = self.serialize(obj, type_hint)
         return self._dump(serialized, **kwargs) # type: ignore
     
-    def loads(self, json_str: str, target_type: Any, **kwargs) -> Any:
-        """从 JSON 字符串反序列化"""
-        data = self._load(json_str, **kwargs) # type: ignore
+    def loads(self, data_str: str, target_type: Any, **kwargs) -> Any:
+        """从字符串反序列化"""
+        data = self._load(data_str, **kwargs) # type: ignore
         return self.deserialize(data, target_type)
     
     def dump(self, obj: Any, fp, type_hint: Any = None, **kwargs) -> None:
@@ -283,11 +283,11 @@ def register_type(*args, **kwargs):
 def serialize_value(value: Any, target_type: Any = None) -> Any:
     return _default_instance.serialize(value, target_type)
 
-def deserialize_value(json_val: Any, target_type: Any) -> Any:
-    return _default_instance.deserialize(json_val, target_type)
+def deserialize_value(data_value: Any, target_type: Any) -> Any:
+    return _default_instance.deserialize(data_value, target_type)
 
 def dumps(obj: Any, type_hint: Any = None, **kwargs) -> str:
     return _default_instance.dumps(obj, type_hint, **kwargs)
 
-def loads(json_str: str, target_type: Any, **kwargs) -> Any:
-    return _default_instance.loads(json_str, target_type, **kwargs)
+def loads(data_str: str, target_type: Any, **kwargs) -> Any:
+    return _default_instance.loads(data_str, target_type, **kwargs)
