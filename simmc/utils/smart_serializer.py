@@ -75,8 +75,8 @@ class SmartSerializer:
     def register_type(
         cls,
         py_type: type,
-        to_json_func: Optional[Callable[[Any], Any]] = None,
-        from_json_func: Optional[Callable[[Any], Any]] = None
+        serialize_func: Optional[Callable[[Any], Any]] = None,
+        deserialize_func: Optional[Callable[[Any], Any]] = None
     ) -> None:
         """
         注册自定义类型的序列化/反序列化函数
@@ -85,10 +85,10 @@ class SmartSerializer:
             SmartJson.register_type(MyClass, lambda x: x.to_dict(), lambda d: MyClass.from_dict(d))
         """
         with cls._lock:
-            if to_json_func:
-                cls._SERIALIZERS[py_type] = to_json_func
-            if from_json_func:
-                cls._DESERIALIZERS[py_type] = from_json_func
+            if serialize_func:
+                cls._SERIALIZERS[py_type] = serialize_func
+            if deserialize_func:
+                cls._DESERIALIZERS[py_type] = deserialize_func
     
     @classmethod
     def unregister_type(cls, py_type: type) -> None:
