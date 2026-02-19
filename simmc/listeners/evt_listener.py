@@ -9,10 +9,10 @@ from pathlib import Path
 from ..schemas.event_registry import get_event
 from ..schemas.event import EventRequest
 from ..utils.logger import logger
-from ..utils.conf_injector import Inject
+from ..utils.conf_injector import ConfigInject
 from ..constants import PATTERNS
 
-@Inject(at={"mode", "enc", "host", "port", "log_path"})
+@ConfigInject(at={"mode", "enc", "host", "port", "log_path"})
 class MinecraftLogListener:
     """
     统一日志监听器：支持从文件（latest.log）或 TCP Socket（Java Agent）读取日志。

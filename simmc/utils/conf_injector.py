@@ -82,7 +82,7 @@ class ConfigSession:
                     os.unlink(tmp_path)
                     raise
 
-class Inject:
+class ConfigInject:
     def __init__(self, name: str | None = None, 
         at: Optional[set[str]] = None, 
         config_file: Optional[Path] = None
