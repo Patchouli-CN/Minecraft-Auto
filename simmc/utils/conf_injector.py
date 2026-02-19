@@ -5,11 +5,25 @@ import inspect
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 from .smart_serializer import serialize_value, deserialize_value
-from ..constants import _CONF_FILE
 
 _LOCK = threading.Lock()
+
+_INJECTOR_CONFIG_PATH = None
+
+try:
+    if not _INJECTOR_CONFIG_PATH:
+        from ..constants import _CONF_FILE
+        _INJECTOR_CONFIG_PATH = _CONF_FILE
+except ImportError:
+    _INJECTOR_CONFIG_PATH = Path("./config.json")
+
+def set_config_path(path: str | Path | None = None) -> None:
+    """ 设置injector全局配置路径"""
+    global _INJECTOR_CONFIG_PATH
+    _INJECTOR_CONFIG_PATH = Path(path or "")
+
 
 class ConfigSession:
     def __init__(self, path: Path, instance: type, field_types: dict[str, type], class_key: str, fields_to_inject: Optional[set[str]] = None, readonly: bool = False):
@@ -24,7 +38,7 @@ class ConfigSession:
         full_config = {}
         class_config = {}
 
-        if _CONF_FILE.exists():
+        if _INJECTOR_CONFIG_PATH.exists(): # type: ignore
             with open(self._path, 'r', encoding='utf-8') as f:
                 try:
                     full_config = json.load(f)
@@ -87,7 +101,7 @@ class ConfigInject:
         at: Optional[set[str]] = None, 
         config_file: Optional[Path] = None
     ) -> None:
-        self.conf_path = config_file or _CONF_FILE
+        self.conf_path = config_file or _INJECTOR_CONFIG_PATH
         self._fields = set(at) if at else None
         self._conf_name = name
 
@@ -108,7 +122,7 @@ class ConfigInject:
 
             fields_to_inject = self._fields or set(field_types.keys())
 
-            with ConfigSession(self.conf_path, instance, field_types, conf_name, fields_to_inject):
+            with ConfigSession(self.conf_path, instance, field_types, conf_name, fields_to_inject): # type: ignore
                 pass
 
         cls.__init__ = new_init
