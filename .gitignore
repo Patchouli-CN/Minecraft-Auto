@@ -16,3 +16,7 @@ wheels/
 config/
 logs/
 ignore/
+
+# ruff 
+.ruff_cache
+
