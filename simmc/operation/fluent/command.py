@@ -1,12 +1,15 @@
 """ 服务器指令 """
+from collections.abc import Awaitable, Callable
 from functools import partial
-from typing import Optional, Self, Callable, Awaitable
-from .base import ServerCommand, FluentBase, _to_sec
-from ..type_chat import type_in_chat
-from ...schemas.typing import TimeDeltaLike
-from ...utils.logger import logger
+from typing import Optional, Self
+
 from ...constants import CMD_CHANNEL_TABLE
+from ...schemas.typing import TimeDeltaLike
 from ...security import json_export
+from ...utils.logger import logger
+from ..type_chat import type_in_chat
+from .base import FluentBase, ServerCommand, _to_sec
+
 
 class ChatCommandFluent(ServerCommand, FluentBase):
     def __init__(self, content: str) -> None:
@@ -24,7 +27,7 @@ class ChatCommandFluent(ServerCommand, FluentBase):
     def ensure_channel(self, name: str = "global") -> Self:
         """ 手动确认当前频道 """
         self._channel = name
-        return self 
+        return self
     
     @json_export
     def switch_channel(self, channel: str) -> Self:

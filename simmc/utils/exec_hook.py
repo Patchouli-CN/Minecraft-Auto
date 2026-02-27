@@ -1,11 +1,13 @@
 """ exception hook """
 
-import traceback
-import multiprocessing
-import threading
 import inspect
+import multiprocessing
 import sys
+import threading
+import traceback
+
 from .logger import logger
+
 
 def format_stack_trace(exctype, value, tb, max_depth=30, nested=False) -> list[str]:
     tb_list = traceback.extract_tb(tb)
@@ -37,8 +39,8 @@ def format_stack_trace(exctype, value, tb, max_depth=30, nested=False) -> list[s
         exception_info.append(f"  ... {more_frames} more ...")
 
     # 检查是否有原因和其他信息
-    cause = getattr(value, '__cause__', None)
-    context = getattr(value, '__context__', None)
+    cause = getattr(value, "__cause__", None)
+    context = getattr(value, "__context__", None)
     
     if cause:
         exception_info.append("Caused by: ")
@@ -89,6 +91,6 @@ def GetStackTrace(vokedepth: int = 1) -> str:
         stack_info += f"  at {funcname} in ({filename}:{line})\n"
     return stack_info
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     
     set_exechook()

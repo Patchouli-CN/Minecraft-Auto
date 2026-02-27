@@ -1,6 +1,8 @@
 """ 协议规范 """
 # simmc/schemas/interfaces.py
-from typing import AsyncGenerator, Protocol, TypeVar
+from collections.abc import AsyncGenerator
+from typing import Protocol, TypeVar
+
 from .event import EventBase, EventRequest
 
 TEVENT = TypeVar("TEVENT", bound=EventBase, contravariant=True)

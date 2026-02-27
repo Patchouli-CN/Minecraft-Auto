@@ -1,19 +1,21 @@
 """ 默认调度器 """
 import asyncio
+import inspect
 import typing
 from asyncio import Task
-import inspect
-from time import monotonic
+from collections.abc import Awaitable, Callable, Coroutine
 from datetime import timedelta
-from typing import Callable, Awaitable, TypeVar, Coroutine, Any, Self
-from ..schemas.event import EventRequest, EventBase
+from time import monotonic
+from typing import Any, Self, TypeVar
+
+from ..constants import BANNER
+from ..metadata import print_banner
+from ..schemas.event import EventBase, EventRequest
 from ..schemas.protocols import IListener, IService
 from ..utils.functools import sync_to_async
 from ..utils.logger import logger
-from ..constants import _ART
-from ..metadata import print_banner
 
-EVENT = TypeVar('EVENT', bound=EventBase, covariant=True)
+EVENT = TypeVar("EVENT", bound=EventBase, covariant=True)
 Handler = Callable[[EVENT], None] | Callable[[EVENT], Awaitable[None]]
 
 class EventLoopScheduler:
@@ -35,7 +37,7 @@ class EventLoopScheduler:
 
     def show_info(self) -> None:
         """ 显示信息 """
-        print(_ART)
+        print(BANNER)
         print_banner()
 
     def _extract_event_types(self, svc: IService) -> tuple[type, ...]:
@@ -113,7 +115,7 @@ class EventLoopScheduler:
     async def loop(self) -> None:
         """ 主循环 """
         self.show_info()
-        logger.info(f"开始运行...")
+        logger.info("开始运行...")
         self.ensure_loop()
         # 执行启动前置
         for prepare in self._startup_prepares:
@@ -126,7 +128,7 @@ class EventLoopScheduler:
                 logger.warning(f"执行前置 {prepare.__name__} 出错: {prepare_exc!r}:{prepare_exc}")
 
         # 运行时委托转任务委托给asyncio-loop
-        for coro in self._coro_buffer: 
+        for coro in self._coro_buffer:
             self._to_runtime_task(coro)
 
         if not self._listeners:
@@ -138,7 +140,7 @@ class EventLoopScheduler:
 
         try:
             await self._loop()
-        except asyncio.CancelledError as e:
+        except asyncio.CancelledError:
             await self.stop()
 
     async def _loop(self):
@@ -148,7 +150,7 @@ class EventLoopScheduler:
         """ 停止循环 """
         if not self._exit_flag:
             self._exit_flag = True # 确认退出状态
-            logger.info(f"正在退出并执行回调...")
+            logger.info("正在退出并执行回调...")
             for t in self._tasks:
                 t.cancel()
             await asyncio.gather(*self._tasks, return_exceptions=True)
@@ -171,7 +173,7 @@ class EventLoopScheduler:
 
     # ------------------------
     async def _pump(self, listener: IListener) -> None:
-        async for ev in listener.listen(): 
+        async for ev in listener.listen():
             self._dispatch(ev)
 
     def _dispatch(self, ev: EventRequest) -> None:
@@ -214,6 +216,6 @@ class EventLoopScheduler:
         return self
     
     async def __aexit__(self, *_: Any) -> None:
-        await self.stop()  
+        await self.stop()
         if self._runner and not self._runner.done():
             await self._runner

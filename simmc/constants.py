@@ -1,28 +1,29 @@
 """ 常量 """
-import sys
 import json
+import sys
 from pathlib import Path
 from typing import Any
-from .schemas.typing import EventRegexRules
-from .exceptions import ConfigFileError
 
-_ART = r"""
- ____  _                      ____        _         _        
+from .exceptions import ConfigFileError
+from .schemas.typing import EventRegexRules
+
+BANNER = r"""
+ ____  _                      ____        _         _
 / ___|(_)_ __ ___  _ __ ___  / ___|      / \  _   _| |_ ___
 \___ \| | '_ ` _ \| '_ ` _ \| |   _____ / _ \| | | | __/ _ \
  ___) | | | | | | | | | | | | |__|_____/ ___ \ |_| | || (_) |
 |____/|_|_| |_| |_|_| |_| |_|\____|   /_/   \_\__,_|\__\___/
 """
 
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     # 打包后 exe 所在目录
     _BASE = Path(sys.executable)
 else:
     # 源码目录
     _BASE = Path(__file__).parent
 
-_CONF_FILE = _BASE.with_name("config.json") 
-_PATT_FILE = _BASE.with_name("patten.json")
+CONFIG_FILE = _BASE.with_name("config.json")
+PATTERN_FILE = _BASE.with_name("patten.json")
 
 _DEFAULT_PATTEN_TEMP: list[EventRegexRules] = \
 [
@@ -212,20 +213,20 @@ _DEFAULT_CONF = {
 
 def _cfg_init() -> dict[str, Any]:
     try:
-      if not _PATT_FILE.exists():
-          _PATT_FILE.write_text(json.dumps(_DEFAULT_PATTEN_TEMP, ensure_ascii=False, indent=2), encoding="utf-8")
+      if not PATTERN_FILE.exists():
+          PATTERN_FILE.write_text(json.dumps(_DEFAULT_PATTEN_TEMP, ensure_ascii=False, indent=2), encoding="utf-8")
 
-      if _CONF_FILE.exists():
-          return json.loads(_CONF_FILE.read_text(encoding="utf-8"))
+      if CONFIG_FILE.exists():
+          return json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
       # 自动生成默认
-      _CONF_FILE.write_text(json.dumps(_DEFAULT_CONF, ensure_ascii=False, indent=2), encoding="utf-8")
+      CONFIG_FILE.write_text(json.dumps(_DEFAULT_CONF, ensure_ascii=False, indent=2), encoding="utf-8")
       return _DEFAULT_CONF
     except json.JSONDecodeError as cause:
         raise ConfigFileError("配置文件发生错误") from cause
 
 _cfg = _cfg_init()
 
-_pat: list[EventRegexRules] = json.loads(_PATT_FILE.read_text(encoding="utf-8"))
+_pat: list[EventRegexRules] = json.loads(PATTERN_FILE.read_text(encoding="utf-8"))
 
 # ---------- 结构化映射 ----------
 MYSELF: str               = _cfg["MINECRAFT"]["USER_ID"]
@@ -235,4 +236,4 @@ ROI: tuple                  = tuple(_cfg["QUEUE_OCR_SETTINGS"]["ROI"])
 
 CMD_CHANNEL_TABLE: dict[str, str]    = _cfg["SERVER"]["CHAT_CHANNELS"]
 PATTERNS             = _pat          # 正则表
-_TRIGGERS: list[dict] = _cfg.get("TRIGGERS", [])
+TRIGGERS: list[dict] = _cfg.get("TRIGGERS", [])

@@ -2,6 +2,7 @@
 from datetime import timedelta
 from typing import TypedDict
 
+
 class RegexRule(TypedDict):
     """ 具体规则 """
     regex: str

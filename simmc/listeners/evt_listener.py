@@ -2,15 +2,18 @@
 
 # simmc/listeners/message_listener.py
 import asyncio
-import aiofiles
 import re
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from pathlib import Path
-from ..schemas.event_registry import get_event
-from ..schemas.event import EventRequest
-from ..utils.logger import logger
-from ..utils.conf_injector import ConfigInject
+
+import aiofiles
+
 from ..constants import PATTERNS
+from ..schemas.event import EventRequest
+from ..schemas.event_registry import get_event
+from ..utils.conf_injector import ConfigInject
+from ..utils.logger import logger
+
 
 @ConfigInject(at={"mode", "enc", "host", "port", "log_path"})
 class MinecraftLogListener:
@@ -52,10 +55,10 @@ class MinecraftLogListener:
         while True:
             curr_size = self.log_path.stat().st_size
             if curr_size > self._offset:
-                async with aiofiles.open(self.log_path, 'rb') as f:
+                async with aiofiles.open(self.log_path, "rb") as f:
                     await f.seek(self._offset)
                     async for raw in f:
-                        line = raw.decode(encoding=self.enc, errors='replace').rstrip()
+                        line = raw.decode(encoding=self.enc, errors="replace").rstrip()
                         for ev in self._parse(line):
                             yield ev
                     self._offset = await f.tell()
@@ -79,7 +82,7 @@ class MinecraftLogListener:
                         raw_line = await reader.readline()
                         if not raw_line:
                             break
-                        line = raw_line.decode(self.enc, errors='replace').rstrip()
+                        line = raw_line.decode(self.enc, errors="replace").rstrip()
                         if not line:
                             continue
                         for ev in self._parse(line):

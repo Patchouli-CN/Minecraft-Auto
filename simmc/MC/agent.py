@@ -1,5 +1,7 @@
-from py4j.java_gateway import JavaGateway, JavaClass, JavaObject
-from typing import Protocol, Any, cast
+from typing import Any, Protocol, cast
+
+from py4j.java_gateway import JavaClass, JavaGateway, JavaObject
+
 from ..utils.tiny_mapper import TinyMapper
 
 mapper = TinyMapper(r"D:\python_play\SIMMC_proj\myagent\mappings\mappings.tiny")

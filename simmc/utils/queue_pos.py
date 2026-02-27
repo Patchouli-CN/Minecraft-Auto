@@ -1,12 +1,15 @@
 
-import pyautogui, re
-import pytesseract
-import numpy as np
+import re
+
 import cv2
+import numpy as np
+import pyautogui
+import pytesseract
+
+from ..constants import ROI, TESSERACT_CMD
+from ..utils.logger import logger  # 引入日志
 from .find_window import get_foreground_title
 from .functools import sync_to_async
-from ..constants import TESSERACT_CMD, ROI
-from ..utils.logger import logger          # 引入日志
 
 QUEUE_RE = re.compile(r"(\d+)\s*/\s*(\d+)")
 pytesseract.pytesseract.tesseract_cmd = str(TESSERACT_CMD)

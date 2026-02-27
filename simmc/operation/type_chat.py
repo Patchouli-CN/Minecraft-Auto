@@ -1,8 +1,11 @@
 
 import time
+
 import pyautogui
 import pyperclip
+
 from ..utils.functools import sync_to_async
+
 # 防止 pyautogui 把鼠标飞走
 pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0.0         # 手动控制延迟，不用默认 sleep

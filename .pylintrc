@@ -1,0 +1,133 @@
+[MASTER]
+# 让信息级别（I）也使检查失败（默认只报错但不影响退出码）
+fail-on = I
+
+# 加载所有有用的官方扩展插件
+load-plugins = pylint.extensions.bad_builtin,
+               pylint.extensions.code_style,
+               pylint.extensions.comparison_placement,
+               pylint.extensions.consider_refactoring_into_while_condition,
+               pylint.extensions.docparams,
+               pylint.extensions.dunder,
+               pylint.extensions.eq_without_hash,
+               pylint.extensions.for_any_all,
+               pylint.extensions.magic_value,
+               pylint.extensions.mccabe,
+               pylint.extensions.no_self_use,
+               pylint.extensions.overlapping_exceptions,
+               pylint.extensions.private_import,
+               pylint.extensions.redefined_loop_name,
+               pylint.extensions.redefined_variable_type,
+               pylint.extensions.set_membership,
+               pylint.extensions.typing,
+               pylint.extensions.while_used
+
+[MESSAGES CONTROL]
+# 启用消息分组：默认禁用所有，然后启用需要的
+# 注意：这是一个"超级严格"配置，会启用几乎所有检查
+disable = all
+
+# 然后启用以下所有类别和具体消息
+enable = C, R, W, E, F,
+         # 一些默认不启用的有用消息
+         bad-inline-option,
+         deprecated-pragma,
+         file-ignored,
+         use-symbolic-message-instead,
+         useless-suppression,  # 检测无用的禁用注释
+
+# 包含命名规则的详细提示
+include-naming-hint = yes
+
+[REPORTS]
+# 输出详细报告
+reports = yes
+# 评分显示
+score = yes
+
+[BASIC]
+# 变量名正则（非常严格）
+const-rgx = (([A-Z_][A-Z0-9_]*)|(__.*__))$  # 常量必须大写
+class-rgx = [A-Z_][a-zA-Z0-9]+$              # 类名必须帕斯卡
+function-rgx = [a-z_][a-z0-9_]{2,50}$        # 函数名必须蛇形
+method-rgx = [a-z_][a-z0-9_]{2,50}$          # 方法名必须蛇形
+attr-rgx = [a-z_][a-z0-9_]{2,30}$            # 属性名必须蛇形
+argument-rgx = [a-z_][a-z0-9_]{2,30}$        # 参数名必须蛇形
+variable-rgx = [a-z_][a-z0-9_]{2,30}$        # 变量名必须蛇形
+class-attribute-rgx = [A-Za-z_][A-Za-z0-9_]{1,30}$  # 类属性
+inlinevar-rgx = [A-Za-z_][A-Za-z0-9_]*$      # 内联变量
+
+# 允许特定名称例外
+good-names = i,j,k,ex,Run,_,
+             id,on,off,ok,ip,db,fd,
+             ev,t,cb,fn,v,m,ts,dt,dq
+
+# 文档字符串要求（非常严格！）
+# 要求模块、类、函数、方法必须有文档字符串
+no-docstring-rgx = ^(_|__.*__|test_.*|.*Test.*)$  # 测试类和魔术方法除外
+
+[DESIGN]
+# 设计原则检查（非常严格）
+max-args = 5                    # 函数最多5个参数（你之前的要求！）
+max-locals = 15                 # 局部变量最多15个
+max-returns = 6                  # return语句最多6个
+max-branches = 12                # 分支语句（if/else）最多12个
+max-statements = 50              # 函数最多50条语句
+max-parents = 7                  # 父类最多7个
+max-attributes = 7               # 类属性最多7个
+min-public-methods = 1           # 最少公共方法
+max-public-methods = 20          # 最多公共方法
+max-module-lines = 1000          # 模块最多1000行
+max-line-length = 88             # 符合Black的行长度
+
+[SIMILARITIES]
+# 重复代码检测（DRY原则！）
+min-similarity-lines = 4         # 4行以上相似就算重复
+ignore-comments = yes            # 忽略注释
+ignore-docstrings = yes          # 忽略文档字符串
+ignore-imports = yes             # 忽略import
+
+[VARIABLES]
+# 变量检查
+dummy-variables-rgx = ^(_+.*|_$|dummy)  # 允许的哑变量（如 _）
+allow-global-unused-variables = no      # 不允许全局未使用变量
+
+[STRING]
+# 字符串检查
+check-quote-consistency = yes           # 检查引号一致性
+
+[TYPECHECK]
+# 类型检查
+ignored-modules =
+ignored-classes = SQLObject  # 忽略一些ORM框架的魔法属性
+generated-members = objects,  # Django等框架的生成成员
+                   DoesNotExist,
+                   _meta,
+                   _default_manager,
+                   _prefetched_objects_cache
+
+[FORMAT]
+# 格式检查
+max-line-length = 88
+ignore-long-lines = ^\s*(# )?<?https?://\S+>?$  # 忽略长URL
+single-line-if-stmt = no        # 不允许单行if
+single-line-class-stmt = no      # 不允许单行类
+
+[MISCELLANEOUS]
+# 杂项检查
+notes = FIXME,XXX,TODO           # 标记待办事项
+
+[LOGGING]
+# 日志检查
+logging-modules = logging
+logging-format-style = old
+
+[SPELLING]
+# 拼写检查（需要安装 enchant）
+# 如果安装了 enchant 可以启用
+# spelling-dict = en_US
+# spelling-ignore-comment-directives = yes
+
+[MCCABE]
+# 圈复杂度（McCabe复杂度）
+max-complexity = 10               # 圈复杂度不能超过10

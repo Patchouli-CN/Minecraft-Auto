@@ -7,8 +7,8 @@ from .functools import sync_to_async
 # Windows
 # ------------------------------------------------------------------
 if sys.platform == "win32":
-    import win32gui
     import win32con
+    import win32gui
 
     def _find_mc_hwnd(title_sub: str = "Minecraft") -> Optional[int]:
         """同步：返回第一个匹配窗口句柄，找不到返回 None"""
@@ -58,8 +58,8 @@ elif sys.platform == "Darwin":
 # Linux (X11 + wmctrl)
 # ------------------------------------------------------------------
 else:
-    import shlex
     import asyncio
+    import shlex
 
     async def focus_mc_window(title: str = "Minecraft") -> bool:
         cmd = f"wmctrl -a {shlex.quote(title)}"

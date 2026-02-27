@@ -1,12 +1,13 @@
 
-import json
-import threading
 import inspect
+import json
 import os
 import tempfile
+import threading
 from pathlib import Path
 from typing import Optional
-from .smart_serializer import serialize_value, deserialize_value
+
+from .smart_serializer import deserialize_value, serialize_value
 
 _LOCK = threading.Lock()
 
@@ -14,8 +15,8 @@ _INJECTOR_CONFIG_PATH = None
 
 try:
     if not _INJECTOR_CONFIG_PATH:
-        from ..constants import _CONF_FILE
-        _INJECTOR_CONFIG_PATH = _CONF_FILE
+        from ..constants import CONFIG_FILE
+        _INJECTOR_CONFIG_PATH = CONFIG_FILE
 except ImportError:
     _INJECTOR_CONFIG_PATH = Path("./config.json")
 
@@ -39,7 +40,7 @@ class ConfigSession:
         class_config = {}
 
         if _INJECTOR_CONFIG_PATH.exists(): # type: ignore
-            with open(self._path, 'r', encoding='utf-8') as f:
+            with open(self._path, "r", encoding="utf-8") as f:
                 try:
                     full_config = json.load(f)
                     class_config = full_config.get(self._class_key, {})
@@ -67,7 +68,7 @@ class ConfigSession:
         full_config = {}
         if self._path.exists():
             try:
-                with open(self._path, 'r', encoding='utf-8') as f:
+                with open(self._path, "r", encoding="utf-8") as f:
                     full_config = json.load(f)
             except (json.JSONDecodeError, OSError):
                 pass
@@ -87,9 +88,9 @@ class ConfigSession:
         # 4. 原子写入（如果只读则不写入）
         if not self._readonly:
             with _LOCK:
-                fd, tmp_path = tempfile.mkstemp(dir=self._path.parent, suffix='.tmp')
+                fd, tmp_path = tempfile.mkstemp(dir=self._path.parent, suffix=".tmp")
                 try:
-                    with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                    with os.fdopen(fd, "w", encoding="utf-8") as f:
                         json.dump(full_config, f, indent=2, ensure_ascii=False)
                     os.replace(tmp_path, self._path)
                 except Exception:
@@ -97,8 +98,8 @@ class ConfigSession:
                     raise
 
 class ConfigInject:
-    def __init__(self, name: str | None = None, 
-        at: Optional[set[str]] = None, 
+    def __init__(self, name: str | None = None,
+        at: Optional[set[str]] = None,
         config_file: Optional[Path] = None
     ) -> None:
         self.conf_path = config_file or _INJECTOR_CONFIG_PATH

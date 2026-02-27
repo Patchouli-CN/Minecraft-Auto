@@ -1,15 +1,16 @@
 """ 事件注册表 """
 
 # simmc/schemas/event_registry.py
-from typing import TYPE_CHECKING, TypeVar
 from functools import wraps
+from typing import TYPE_CHECKING, TypeVar
+
 if TYPE_CHECKING:
     from .event import EventBase
 
 __key_to_cls: dict[str, type["EventBase"]] = {}
 __cls_to_key: dict[type["EventBase"], str] = {}
 
-EVENT = TypeVar('EVENT', bound="EventBase", covariant=True)
+EVENT = TypeVar("EVENT", bound="EventBase", covariant=True)
 
 def event(name: str):
     """

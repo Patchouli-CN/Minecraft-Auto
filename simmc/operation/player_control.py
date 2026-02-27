@@ -1,6 +1,8 @@
 import asyncio
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Callable, Awaitable, Optional
+from typing import Optional
+
 from ..utils.logger import logger
 
 # 回调签名：async fn(**kw) -> None

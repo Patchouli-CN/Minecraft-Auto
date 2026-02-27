@@ -1,10 +1,11 @@
 """ 事件发生数据 """
 
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Generic, TypeVar
-from .event_registry import event
+
 from ..constants import CMD_CHANNEL_TABLE
+from .event_registry import event
 
 T = TypeVar("T")
 
@@ -24,7 +25,7 @@ class EventBase(Generic[T]):
 @event("消息")
 class MessageEvent(EventBase[str]):
     """ 消息事件 """
-    def __init__(self, 
+    def __init__(self,
         server_name: str = "主服",
         channel: str = "G",
         tag: str = "流浪者",

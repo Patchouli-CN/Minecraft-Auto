@@ -1,14 +1,16 @@
 
-import re
 import inspect
-from typing import Any, Callable
-from ..security import _safe_attr
-from ..schemas.event import EventBase
-from ..schemas.event_registry import get_event_name
+import re
+from collections.abc import Callable
+from typing import Any
+
+from ..constants import TRIGGERS
 from ..operation.fluent.base import fire, jump
 from ..operation.fluent.command import chat, pay
 from ..operation.fluent.land import land
-from ..constants import _TRIGGERS
+from ..schemas.event import EventBase
+from ..schemas.event_registry import get_event_name
+from ..security import _safe_attr
 from ..utils.logger import logger
 
 _CMD_MAP: dict[str, Callable[..., Any]] = {
@@ -26,7 +28,7 @@ class JsonTriggerService:
         if not name:
             return
 
-        for rule in _TRIGGERS:
+        for rule in TRIGGERS:
             if rule["on"] != name or not self._match_when(ev, rule["when"]):
                 continue
 

@@ -1,14 +1,16 @@
 
 # simmc/security/export.py
-from typing import Callable, Set, ParamSpec, TypeVar, Any
-_ALLOW_METHOD: dict[str, Set[str]] = {}
+from collections.abc import Callable
+from typing import Any, ParamSpec, TypeVar
+
+_ALLOW_METHOD: dict[str, set[str]] = {}
 
 P = ParamSpec("P")
 T = TypeVar("T")
 
 def json_export(func: Callable[P, T]) -> Callable[P, T]:
     """装饰公开可链式调用的方法/属性 getter"""
-    cls_name = func.__qualname__.split('.')[0]
+    cls_name = func.__qualname__.split(".")[0]
     _ALLOW_METHOD.setdefault(cls_name, set()).add(func.__name__)
     return func
 

@@ -1,8 +1,9 @@
 
 import time
-from datetime import timedelta
 from collections import deque
+from datetime import timedelta
 from typing import Optional
+
 
 class QueueEtaService:
     """
@@ -76,7 +77,7 @@ class QueueEtaService:
 
         # 找出所有位置下降的点（避免 total 跳变干扰）
         valid_points = []
-        last_q = float('inf')
+        last_q = float("inf")
         for ts, q in self.position_history:
             if q < last_q:  # 只记录单调下降的点
                 valid_points.append((ts, q))

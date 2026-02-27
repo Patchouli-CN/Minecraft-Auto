@@ -1,8 +1,9 @@
 """ 聊天频道确认模块 """
 
+import asyncio
 import re
 import uuid
-import asyncio
+
 from ..operation.fluent.base import fire
 from ..operation.fluent.command import chat
 from ..schemas.event import MessageEvent

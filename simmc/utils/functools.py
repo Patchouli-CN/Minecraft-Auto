@@ -1,9 +1,13 @@
 """ 函数工具 """
 
-import asyncio, contextvars, functools, atexit
+import asyncio
+import atexit
+import contextvars
+import functools
+from collections.abc import Callable, Coroutine
 from concurrent.futures import Executor, ThreadPoolExecutor
-from typing import Callable, TypeVar, ParamSpec, Optional, Coroutine
 from functools import partial
+from typing import Optional, ParamSpec, TypeVar
 
 P = ParamSpec("P")
 T = TypeVar("T")

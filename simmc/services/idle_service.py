@@ -1,7 +1,8 @@
 
+from ..operation.fluent.base import fluent_wait, jump
 from ..schemas.event import PlayerIdleEvent, PlayerResumeEvent
-from ..operation.fluent.base import jump, fluent_wait
 from ..utils.logger import logger
+
 
 class IdleService:
     """ 挂机服务 """

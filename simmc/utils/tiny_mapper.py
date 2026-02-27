@@ -1,10 +1,11 @@
 """ mapping.tiny 解析器 """
 
 import re
-from dataclasses import dataclass
 from collections import defaultdict
+from dataclasses import dataclass
 from functools import lru_cache
-from ..utils.jtype_parser import parse_method_params, descriptor_to_pytype
+
+from ..utils.jtype_parser import descriptor_to_pytype, parse_method_params
 
 MAPPER: TinyMapper | None = None
 
@@ -228,7 +229,7 @@ class TinyMapper:
         
         返回列表：[(intermediary_dot_format, readable_dot_format), ...]
         例如：
-            mapper.find_class("Player") 
+            mapper.find_class("Player")
             → [('net.minecraft.class_1657', 'net.minecraft.entity.player.PlayerEntity'), ...]
         """
         regex = re.compile(pattern)

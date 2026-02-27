@@ -1,12 +1,16 @@
 
 from __future__ import annotations
-from typing import Optional, Callable, Awaitable, AsyncGenerator, Self, Literal
+
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from functools import partial
-from .base import ServerCommand, FluentBase
+from typing import Literal, Optional, Self
+
+from ...exceptions import ServerCommandError
 from ...security import json_export
 from ..type_chat import type_in_chat
-from ...exceptions import ServerCommandError
+from .base import FluentBase, ServerCommand
+
 
 # 1. 编辑上下文对象，仅负责“构造”命令，不直接动键鼠
 class _EditCtx(FluentBase):

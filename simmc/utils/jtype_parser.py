@@ -2,10 +2,11 @@
 
 from enum import Enum
 
+
 class JvmType(Enum):
     VOID = ("V", "None")
     BOOLEAN = ("Z", "bool")
-    BYTE = ("B", "int") 
+    BYTE = ("B", "int")
     CHAR = ("C", "str")      # Java char 是 16-bit，Python 用 str 表示单字符
     SHORT = ("S", "int")
     INT = ("I", "int")
@@ -86,15 +87,11 @@ def parse_method_params(desc: str, mapper=None) -> list[str]:
             if i >= len(params_str):
                 raise ValueError("Invalid array in descriptor")
             base_c = params_str[i]
-            if base_c in "ZBCSIJFD":
-                base_type = descriptor_to_pytype(base_c, mapper=mapper)
-            elif base_c == "L":
+            if base_c == "L":
                 end_class = params_str.find(";", i)
-                base_type = descriptor_to_pytype(params_str[i:end_class + 1], mapper=mapper)
                 i = end_class
             else:
-                base_type = "object"
-            types.append("list")
+                types.append("list")
             i += 1
         else:
             raise ValueError(f"Unknown type char: {c}")
