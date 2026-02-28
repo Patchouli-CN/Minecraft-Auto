@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator, Awaitable, Callable
@@ -20,14 +19,15 @@ class _EditCtx(FluentBase):
     @property
     @json_export
     def trust(self) -> TrustFluent:
-        """ 让此领地信任/失信一个玩家 """
+        """让此领地信任/失信一个玩家"""
         return TrustFluent()
-    
+
     @property
     @json_export
     def claim(self) -> ClaimFluent:
-        """ 领地圈地指令 """
+        """领地圈地指令"""
         return ClaimFluent()
+
 
 # 2. 具体子命令，依旧走 FluentBase → PlayerControl
 class TrustFluent(ServerCommand, FluentBase):
@@ -36,13 +36,13 @@ class TrustFluent(ServerCommand, FluentBase):
 
     @json_export
     def add(self, player: str) -> Self:
-        """ 信任一个玩家 """
+        """信任一个玩家"""
         self._cmd = f"/land trust {player}"
         return self
-    
+
     @json_export
     def remove(self, player: str) -> Self:
-        """ 失信一个玩家 """
+        """失信一个玩家"""
         self._cmd = f"/land untrust {player}"
         return self
 
@@ -50,6 +50,7 @@ class TrustFluent(ServerCommand, FluentBase):
         if self._check_null(self._cmd):
             raise ServerCommandError("trust子指令操作为空，不能啥也不做")
         return partial(type_in_chat, self._cmd, 0.0)
+
 
 class ClaimFluent(FluentBase):
     def __init__(self) -> None:
@@ -60,36 +61,36 @@ class ClaimFluent(FluentBase):
     @property
     @json_export
     def draw(self) -> Self:
-        """ 圈地模式 """
+        """圈地模式"""
         self._mode = "claim"
         return self
-    
+
     @property
     @json_export
     def erase(self) -> Self:
-        """ 擦除模式 """
+        """擦除模式"""
         self._mode = "unclaim"
         return self
-    
+
     @json_export
     def radius(self, value: int) -> Self:
-        """ 根据半径 """
+        """根据半径"""
         self._sub_op = "radius"
         self._radius_value = value
         return self
-    
+
     @json_export
     def auto(self) -> Self:
-        """ 自动 """
+        """自动"""
         self._sub_op = "auto"
         return self
-    
+
     @json_export
     def fill(self) -> Self:
-        """ 填充 """
+        """填充"""
         self._sub_op = "fill"
         return self
-    
+
     def _handle_draw(self) -> None:
         if self._sub_op == "radius":
             self._cmd = f"/land {self._mode} {self._sub_op} {self._radius_value}"
@@ -98,7 +99,9 @@ class ClaimFluent(FluentBase):
 
     def _handle_erase(self) -> None:
         if self._sub_op == "radius":
-            self._cmd = f"/land {self._mode} {self._sub_op} {self._radius_value} confirm"
+            self._cmd = (
+                f"/land {self._mode} {self._sub_op} {self._radius_value} confirm"
+            )
         else:
             self._cmd = f"/land {self._mode} {self._sub_op} confirm"
 
@@ -108,13 +111,15 @@ class ClaimFluent(FluentBase):
         else:
             self._handle_erase()
         return partial(type_in_chat, self._cmd, 0.0)
-    
+
+
 class _EnterEditFluent(FluentBase):
     def __init__(self, land: str) -> None:
         self._cmd = f"/land edit {land}"
 
     def _build_handler(self) -> Callable[..., Awaitable[None]]:
         return partial(type_in_chat, self._cmd, 0.0)
+
 
 class LandFluent(ServerCommand, FluentBase):
     """领地相关流式命令：邀请、存款、取款……"""
@@ -124,8 +129,8 @@ class LandFluent(ServerCommand, FluentBase):
             raise ValueError("land_name 不能为空")
         self._in_edit: bool = False
         self._land: str = land_name.strip()
-        self._sub_command: str = ""        #  invite | deposit | withdraw …
-        self._operation: Optional[str] = None   # accept | deny | all …
+        self._sub_command: str = ""  #  invite | deposit | withdraw …
+        self._operation: Optional[str] = None  # accept | deny | all …
 
     # ---------- 子命令：入口 ----------
     @property
@@ -134,17 +139,19 @@ class LandFluent(ServerCommand, FluentBase):
         """处理别人发给我的领地邀请"""
         self._sub_command = "invite"
         return self
-    
+
     @json_export
     def deposit(self, value: str | int = "all") -> LandFluent:
         """向领地存钱"""
         self._sub_command = "deposit"
         self._value: str = str(value).lower()
         return self
-    
+
     @asynccontextmanager
     @json_export
-    async def edit(self, land_name: str | None = None) -> AsyncGenerator[_EditCtx, None]:
+    async def edit(
+        self, land_name: str | None = None
+    ) -> AsyncGenerator[_EditCtx, None]:
         # 进入编辑模式
         try:
             if self._in_edit:
@@ -163,7 +170,7 @@ class LandFluent(ServerCommand, FluentBase):
             raise RuntimeError("只有 invite 后才能 accept()")
         self._operation = "accept"
         return self
-    
+
     @json_export
     def reject(self) -> LandFluent:
         if self._sub_command != "invite":
@@ -180,6 +187,7 @@ class LandFluent(ServerCommand, FluentBase):
         else:
             raise RuntimeError("子命令未设置，无法构建 handler")
         return partial(type_in_chat, cmd, 0.0)
-    
+
+
 def land(name: str) -> LandFluent:
     return LandFluent(name)

@@ -1,4 +1,3 @@
-
 import inspect
 import json
 import os
@@ -16,18 +15,28 @@ _INJECTOR_CONFIG_PATH = None
 try:
     if not _INJECTOR_CONFIG_PATH:
         from ..constants import CONFIG_FILE
+
         _INJECTOR_CONFIG_PATH = CONFIG_FILE
 except ImportError:
     _INJECTOR_CONFIG_PATH = Path("./config.json")
 
+
 def set_config_path(path: str | Path | None = None) -> None:
-    """ 设置injector全局配置路径"""
+    """设置injector全局配置路径"""
     global _INJECTOR_CONFIG_PATH
     _INJECTOR_CONFIG_PATH = Path(path or "")
 
 
 class ConfigSession:
-    def __init__(self, path: Path, instance: type, field_types: dict[str, type], class_key: str, fields_to_inject: Optional[set[str]] = None, readonly: bool = False):
+    def __init__(
+        self,
+        path: Path,
+        instance: type,
+        field_types: dict[str, type],
+        class_key: str,
+        fields_to_inject: Optional[set[str]] = None,
+        readonly: bool = False,
+    ):
         self._readonly = readonly
         self._path = path
         self._instance = instance
@@ -39,7 +48,7 @@ class ConfigSession:
         full_config = {}
         class_config = {}
 
-        if _INJECTOR_CONFIG_PATH.exists(): # type: ignore
+        if _INJECTOR_CONFIG_PATH.exists():  # type: ignore
             with open(self._path, "r", encoding="utf-8") as f:
                 try:
                     full_config = json.load(f)
@@ -59,7 +68,9 @@ class ConfigSession:
                 injected_val = deserialize_value(raw_val, field_type)
                 setattr(self._instance, key, injected_val)
             except Exception as e:
-                print(f"[Config] Warning: Failed to load '{self._class_key}.{key}': {e}. Using default.")
+                print(
+                    f"[Config] Warning: Failed to load '{self._class_key}.{key}': {e}. Using default."
+                )
 
         return self
 
@@ -97,10 +108,13 @@ class ConfigSession:
                     os.unlink(tmp_path)
                     raise
 
+
 class ConfigInject:
-    def __init__(self, name: str | None = None,
+    def __init__(
+        self,
+        name: str | None = None,
         at: Optional[set[str]] = None,
-        config_file: Optional[Path] = None
+        config_file: Optional[Path] = None,
     ) -> None:
         self.conf_path = config_file or _INJECTOR_CONFIG_PATH
         self._fields = set(at) if at else None
@@ -108,7 +122,9 @@ class ConfigInject:
 
     def __call__(self, cls: type):
         original_init = cls.__init__
-        conf_name = self._conf_name or cls.__qualname__  # 使用类名或自定义名，如 "MyClass" 或 "Outer.Inner"
+        conf_name = (
+            self._conf_name or cls.__qualname__
+        )  # 使用类名或自定义名，如 "MyClass" 或 "Outer.Inner"
 
         def new_init(instance, *args, **kwargs):
             original_init(instance, *args, **kwargs)
@@ -119,11 +135,15 @@ class ConfigInject:
                 if hasattr(cls, name):  # 必须有默认值（类属性）
                     field_types[name] = typ
                 else:
-                    raise ValueError(f"Field '{name}' has no default value. Required for @Inject.")
+                    raise ValueError(
+                        f"Field '{name}' has no default value. Required for @Inject."
+                    )
 
             fields_to_inject = self._fields or set(field_types.keys())
 
-            with ConfigSession(self.conf_path, instance, field_types, conf_name, fields_to_inject): # type: ignore
+            with ConfigSession(
+                self.conf_path, instance, field_types, conf_name, fields_to_inject
+            ):  # type: ignore
                 pass
 
         cls.__init__ = new_init

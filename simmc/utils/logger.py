@@ -1,4 +1,4 @@
-""" 日志实现 """
+"""日志实现"""
 
 import sys
 from datetime import datetime
@@ -26,7 +26,7 @@ FILEHANDLER = logger.add(
     compression="zip",
     backtrace=True,
     diagnose=True,
-    enqueue=True
+    enqueue=True,
 )
 
 # 添加控制台日志输出
@@ -34,7 +34,7 @@ CONSOLEHANDLER = logger.add(
     sys.stderr,
     format="<level>{time:HH:mm:ss} | {level:<8} | {thread.name:<12} / {name} | {function}:{line:03d} | {message}</level>",
     level="TRACE",
-    colorize=True
+    colorize=True,
 )
 
 # 测试日志

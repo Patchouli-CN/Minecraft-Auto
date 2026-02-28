@@ -1,4 +1,3 @@
-
 import re
 
 import cv2
@@ -18,9 +17,11 @@ pytesseract.pytesseract.tesseract_cmd = str(TESSERACT_CMD)
 _MAX_POP = 3000
 _MIN_POP = 0
 
+
 def ocr_available() -> bool:
-    """ ocr是否可用 """
+    """ocr是否可用"""
     return TESSERACT_CMD.exists()
+
 
 @sync_to_async
 def _ocr_text() -> str:
@@ -32,15 +33,14 @@ def _ocr_text() -> str:
         gray = cv2.cvtColor(np.array(img_np), cv2.COLOR_RGB2GRAY)
         _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         # 3. 只认数字 & "/"
-        text = pytesseract.image_to_string(
-            bw, config=r"--psm 7"
-        )
+        text = pytesseract.image_to_string(bw, config=r"--psm 7")
         return text.strip()
     else:
         return ""
 
+
 async def queue_pos() -> tuple[int, int]:
-    """ 获取游戏排队位置 """
+    """获取游戏排队位置"""
     raw = await _ocr_text()
     m = QUEUE_RE.search(raw)
     if not m:

@@ -1,4 +1,4 @@
-""" 消息监听 """
+"""消息监听"""
 
 # simmc/listeners/message_listener.py
 import asyncio
@@ -19,10 +19,11 @@ from ..utils.logger import logger
 class MinecraftLogListener:
     """
     统一日志监听器：支持从文件（latest.log）或 TCP Socket（Java Agent）读取日志。
-    
+
     - mode="file": 轮询 latest.log 文件（兼容无 Agent 场景）
     - mode="socket": 连接 Java Agent 的日志推送服务（低延迟，推荐）
     """
+
     # 下面配置会自动注入
     mode: str = "socket"
     enc: str = "gbk"
@@ -48,7 +49,9 @@ class MinecraftLogListener:
     async def _listen_file(self) -> AsyncGenerator[EventRequest]:
         """原 MinecraftLogListener.listen() 逻辑"""
         if not self.log_path.exists():
-            raise FileNotFoundError(f"此路径: {self.log_path} 没找到MC的 latest.log, 请重新指定。")
+            raise FileNotFoundError(
+                f"此路径: {self.log_path} 没找到MC的 latest.log, 请重新指定。"
+            )
 
         self._offset = self.log_path.stat().st_size
 
@@ -69,7 +72,7 @@ class MinecraftLogListener:
     async def _listen_socket(self) -> AsyncGenerator[EventRequest]:
         """Socket 模式监听，失败后自动降级到文件模式"""
         logger.info(f"📡 尝试连接 Java Agent 日志 Socket: {self.host}:{self.port}")
-        
+
         max_retries = 10
         retry_count = 0
 
@@ -94,7 +97,9 @@ class MinecraftLogListener:
                 return
             except (OSError, ConnectionRefusedError) as e:
                 retry_count += 1
-                logger.warning(f"⚠️ 连接日志 Socket 失败 ({e})，第 {retry_count}/{max_retries} 次重试...")
+                logger.warning(
+                    f"⚠️ 连接日志 Socket 失败 ({e})，第 {retry_count}/{max_retries} 次重试..."
+                )
                 if retry_count < max_retries:
                     await asyncio.sleep(2)
             except Exception as e:

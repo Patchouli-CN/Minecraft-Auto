@@ -1,11 +1,11 @@
-
 from ..operation.fluent.base import fluent_wait, jump
 from ..schemas.event import PlayerIdleEvent, PlayerResumeEvent
 from ..utils.logger import logger
 
 
 class IdleService:
-    """ 挂机服务 """
+    """挂机服务"""
+
     def __init__(self):
         self.detected = False
         self._detected_nums = 0
@@ -20,7 +20,7 @@ class IdleService:
 
     # --------- 原逻辑保持不变 ---------
     async def handle_idle(self, ev: PlayerIdleEvent) -> None:
-        if self.detected:          # 防止重复协程
+        if self.detected:  # 防止重复协程
             return
         self.detected = True
         self._detected_nums += 1

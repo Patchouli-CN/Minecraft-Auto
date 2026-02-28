@@ -1,4 +1,4 @@
-""" mapping.tiny 解析器 """
+"""mapping.tiny 解析器"""
 
 import re
 from collections import defaultdict
@@ -7,34 +7,36 @@ from functools import lru_cache
 
 from ..utils.jtype_parser import descriptor_to_pytype, parse_method_params
 
-MAPPER: TinyMapper | None = None
+MAPPER: "TinyMapper | None" = None
+
 
 @dataclass(slots=True)
 class FieldInfo:
-    jtype: str      # Java field descriptor (e.g., "I", "Ljava/lang/String;")
-    obf_name: str   # intermediary name (e.g., "field_1742")
+    jtype: str  # Java field descriptor (e.g., "I", "Ljava/lang/String;")
+    obf_name: str  # intermediary name (e.g., "field_1742")
     real_name: str  # readable Yarn name (e.g., "options")
 
     @property
     def py_type(self) -> str:
         """返回该字段的 Python 类型名（用于显示或注解）"""
         return descriptor_to_pytype(self.jtype, MAPPER)
-    
+
     def to_pysig(self) -> str:
         """返回类似 Python 字段声明的字符串"""
         return f"{self.real_name}: {self.py_type}"
 
+
 @dataclass(slots=True)
 class MethodInfo:
-    desc: str       # method descriptor (e.g., "(I)V")
-    obf_name: str   # intermediary name (e.g., "method_5678")
+    desc: str  # method descriptor (e.g., "(I)V")
+    obf_name: str  # intermediary name (e.g., "method_5678")
     real_name: str  # readable Yarn name (e.g., "run")
     params: dict[int, str]
 
     def to_pysig(self, use_arg_names: bool = True) -> str:
         """返回类似 Python 函数签名的字符串。"""
         param_types = parse_method_params(self.desc, MAPPER)
-        return_type_desc = self.desc[self.desc.rfind(")") + 1:]
+        return_type_desc = self.desc[self.desc.rfind(")") + 1 :]
         return_type = descriptor_to_pytype(return_type_desc, MAPPER)
 
         args = []
@@ -50,22 +52,29 @@ class MethodInfo:
         func_name = self.real_name if self.real_name != "<init>" else "__init__"
         return f"{func_name}({args_str}) -> {return_type}"
 
+
 @dataclass(slots=True)
 class MappedClassInfo:
-    class_name: str          # readable class name (dot format)
-    obf_class_name: str      # input obfuscated class name (dot format)
+    class_name: str  # readable class name (dot format)
+    obf_class_name: str  # input obfuscated class name (dot format)
     methods: list[MethodInfo]
     fields: list[FieldInfo]
 
+
 class TinyMapper:
-    """ mappings.tiny解析器 """
+    """mappings.tiny解析器"""
+
     def __init__(self, tiny_path: str):
         self.res_path = tiny_path
         self._inter_to_named: dict[str, str] = {}  # inter → named (slash format)
         self._named_to_inter: dict[str, str] = {}
 
-        self._simple_to_inter: dict[str, list[str]] = defaultdict(list)  # simple → [full_inter1, full_inter2]
-        self._simple_to_named: dict[str, list[str]] = defaultdict(list)  # simple → [full_named1, ...]
+        self._simple_to_inter: dict[str, list[str]] = defaultdict(
+            list
+        )  # simple → [full_inter1, full_inter2]
+        self._simple_to_named: dict[str, list[str]] = defaultdict(
+            list
+        )  # simple → [full_named1, ...]
 
         # Pre-built per-class indexes for fast lookup
         self._class_methods: defaultdict[str, list[MethodInfo]] = defaultdict(list)
@@ -119,7 +128,9 @@ class TinyMapper:
             if member_type == "m" and len(parts) >= 5:
                 desc, obf_name, real_name = parts[2], parts[3], parts[4]
                 self._class_methods[current_class_inter].append(
-                    MethodInfo(desc=desc, obf_name=obf_name, real_name=real_name, params={})
+                    MethodInfo(
+                        desc=desc, obf_name=obf_name, real_name=real_name, params={}
+                    )
                 )
                 current_method_obf = obf_name
                 continue
@@ -154,14 +165,14 @@ class TinyMapper:
         MAPPER = self
 
     def _reverse_dict(self, dict_obj: dict) -> dict:
-        """ 反转key-value 到 value-key """
+        """反转key-value 到 value-key"""
         _reversed_dict = {}
         for k, v in dict_obj.items():
             _reversed_dict[v] = k
         return _reversed_dict
-    
+
     def obf_class(self, readable_class: str) -> str:
-        """ 可读类名→ 混淆类名"""
+        """可读类名→ 混淆类名"""
         named_key = self.deobf_class(readable_class)
         obf = self._named_to_inter.get(named_key.replace(".", "/"), readable_class)
         return obf.replace("/", ".")
@@ -174,7 +185,7 @@ class TinyMapper:
         - 完整可读名（点号）："net.minecraft.client.network.ClientPlayerEntity"
         - 简单混淆名："class_746"
         - 简单可读名："ClientPlayerEntity"
-        
+
         如果找到多个匹配，返回第一个；如果没找到，原样返回。
         """
         # 标准化为 slash 格式（用于内部查找）
@@ -206,9 +217,9 @@ class TinyMapper:
 
         # 5. 找不到，原样返回
         return class_hint
-    
+
     def deobf_method(self, readable_class: str, method_name: str) -> MethodInfo | None:
-        """ 找方法 """
+        """找方法"""
         info = self.get_class_info_by_readable(readable_class)
         for m in info.methods:
             if m.real_name == method_name:
@@ -216,17 +227,17 @@ class TinyMapper:
         return None
 
     def deobf_field(self, readable_class: str, field_name: str) -> FieldInfo | None:
-        """ 找字段 """
+        """找字段"""
         info = self.get_class_info_by_readable(readable_class)
         for f in info.fields:
             if f.real_name == field_name:
                 return f
         return None
-    
+
     def find_class(self, pattern: str) -> list[tuple[str, str]]:
         """
         模糊搜索可读类名中包含 keyword 的类。
-        
+
         返回列表：[(intermediary_dot_format, readable_dot_format), ...]
         例如：
             mapper.find_class("Player")
@@ -238,21 +249,23 @@ class TinyMapper:
             if regex.search(named):
                 result.append((inter.replace("/", "."), named.replace("/", ".")))
         return result
-    
+
     def find_class_with_info(self, keyword: str) -> list[MappedClassInfo]:
         matches = self.find_class(keyword)
         return [self.get_class_info(obf) for obf, _ in matches]
 
     def get_all_readable_classes(self) -> list[str]:
         return sorted({v.replace("/", ".") for v in self._inter_to_named.values()})
-    
+
     @lru_cache(maxsize=1024)
     def get_class_info(self, obf_class: str) -> MappedClassInfo:
         """
         返回完整类信息，包含字段/方法的类型、混淆名、可读名。
         """
         inter_key = obf_class.replace(".", "/")
-        readable_class = self._inter_to_named.get(inter_key, obf_class).replace("/", ".")
+        readable_class = self._inter_to_named.get(inter_key, obf_class).replace(
+            "/", "."
+        )
         obf_class_dot = obf_class  # preserve input format
 
         methods = self._class_methods.get(inter_key, [])
@@ -262,9 +275,9 @@ class TinyMapper:
             class_name=readable_class,
             obf_class_name=obf_class_dot,
             methods=methods,
-            fields=fields
+            fields=fields,
         )
-    
+
     def get_class_info_by_readable(self, readable_class: str) -> MappedClassInfo:
         obf = self.obf_class(readable_class)
         return self.get_class_info(obf)

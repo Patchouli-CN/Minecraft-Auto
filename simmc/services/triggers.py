@@ -1,4 +1,3 @@
-
 import inspect
 import re
 from collections.abc import Callable
@@ -16,9 +15,10 @@ from ..utils.logger import logger
 _CMD_MAP: dict[str, Callable[..., Any]] = {
     "chat": chat,
     "jump": jump,
-    "pay":  pay,
-    "land": land
+    "pay": pay,
+    "land": land,
 }
+
 
 class JsonTriggerService:
     """纯配置化触发器服务，挂载即生效"""
@@ -44,10 +44,10 @@ class JsonTriggerService:
             logger.trace(f"事件<{name}> 缺少字段自动填入: {cmd}({args})")
             fluent = ctor(**args)
             for meth, *argv in rule["do"]["chain"]:
-                attr = _safe_attr(fluent, meth)      # 安检
+                attr = _safe_attr(fluent, meth)  # 安检
                 if callable(attr):
-                    fluent = attr(*argv)                  # 方法调用
-                else:                                     # 属性继续链
+                    fluent = attr(*argv)  # 方法调用
+                else:  # 属性继续链
                     fluent = attr
 
             logger.info(f"事件<{name}> 命中 -> {cmd}({args})")

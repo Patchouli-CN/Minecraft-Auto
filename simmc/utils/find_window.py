@@ -1,4 +1,3 @@
-
 import sys
 from typing import Optional
 
@@ -17,8 +16,10 @@ elif sys.platform == "Darwin":
         return app.localizedName() if app else None
 
 else:  # Linux X11
+
     def get_foreground_title() -> Optional[str]:
         import subprocess
+
         cmd = "xdotool getwindowfocus getwindowname"
         try:
             return subprocess.check_output(cmd, shell=True, text=True).strip()

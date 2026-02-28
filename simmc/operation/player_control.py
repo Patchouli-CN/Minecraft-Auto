@@ -8,11 +8,13 @@ from ..utils.logger import logger
 # 回调签名：async fn(**kw) -> None
 Handler = Callable[..., Awaitable[None]]
 
+
 @dataclass(slots=True)
 class PlayerOperationRequest:
     handler: Handler
     kw: dict
     future: asyncio.Future[None]
+
 
 class PlayerControl:
     """玩家身体独占控制器：天然协程安全、自带排队"""
@@ -58,7 +60,7 @@ class PlayerControl:
             try:
                 logger.debug(f"执行玩家控制请求：{req.handler!r}")
                 async with self._lock:
-                    await req.handler(**req.kw)          # 关键区
+                    await req.handler(**req.kw)  # 关键区
             except Exception as exc:
                 logger.exception(f"玩家控制请求执行失败：{exc}")
                 if not req.future.done():

@@ -1,3 +1,4 @@
+
 from typing import Any, Protocol, cast
 
 from py4j.java_gateway import JavaClass, JavaGateway, JavaObject
@@ -6,12 +7,13 @@ from ..utils.tiny_mapper import TinyMapper
 
 mapper = TinyMapper(r"D:\python_play\SIMMC_proj\myagent\mappings\mappings.tiny")
 
+
 class MCAgent(Protocol):
     """Minecraft 动态反射入口点（客户端/服务端通用）"""
 
     # ========== 类加载 ==========
     def refreshClassCache(self) -> None:
-        """ 刷新agent类缓存，避免由于启动过早而找不到类 """
+        """刷新agent类缓存，避免由于启动过早而找不到类"""
         ...
 
     def getAllClassesName(self) -> list[str]:
@@ -27,12 +29,14 @@ class MCAgent(Protocol):
         ...
 
     # ========== 方法调用 ==========
-    def invokeStaticMethod(self, className: str, methodName: str, *args: Any) -> JavaObject:
+    def invokeStaticMethod(
+        self, className: str, methodName: str, *args: Any
+    ) -> JavaObject:
         """调用静态方法"""
         ...
 
     def invokeStaticMethodNoArgs(self, className: str, methodName: str) -> JavaObject:
-        """ 无参调用静态方法 """
+        """无参调用静态方法"""
         ...
 
     def invokeMethod(self, obj: JavaObject, methodName: str, *args: Any) -> JavaObject:
@@ -40,7 +44,7 @@ class MCAgent(Protocol):
         ...
 
     def invokeMethodNoArgs(self, obj: JavaObject, methodName: str) -> JavaObject:
-        """ 无参调用实例方法 """
+        """无参调用实例方法"""
         ...
 
     # ========== 字段读写 ==========
@@ -69,14 +73,19 @@ class MCAgent(Protocol):
         """获取类的所有 declared 方法签名（包括 private）"""
         ...
 
+
 gateway = JavaGateway(auto_convert=True)
+
 
 def get_agent() -> MCAgent:
     return cast(MCAgent, gateway)
 
+
 entry = get_agent()
 
-MinecraftClient = entry.invokeStaticMethodNoArgs("net.minecraft.class_310", "method_1551") # MinecraftClient.getInstance()
+MinecraftClient = entry.invokeStaticMethodNoArgs(
+    "net.minecraft.class_310", "method_1551"
+)  # MinecraftClient.getInstance()
 """
 MC客户端实例
 """

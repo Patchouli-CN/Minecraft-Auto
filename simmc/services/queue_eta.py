@@ -1,4 +1,3 @@
-
 import time
 from collections import deque
 from datetime import timedelta
@@ -14,21 +13,27 @@ class QueueEtaService:
 
     def __init__(
         self,
-        service_window_size: int = 20,      # 用于估计服务时间的历史出队人数
-        drain_window_duration: float = 60.0, # 用于估计排队速率的时间窗口（秒）
-        min_drain_samples: int = 3,          # 排队速率至少需要多少次位置变化
-        max_eta_sec: float = 7200,           # 最大 ETA（2小时）
-        default_service_time: float = 2.0,   # 默认服务时间（秒/人）
+        service_window_size: int = 20,  # 用于估计服务时间的历史出队人数
+        drain_window_duration: float = 60.0,  # 用于估计排队速率的时间窗口（秒）
+        min_drain_samples: int = 3,  # 排队速率至少需要多少次位置变化
+        max_eta_sec: float = 7200,  # 最大 ETA（2小时）
+        default_service_time: float = 2.0,  # 默认服务时间（秒/人）
     ):
         # === 服务时间估计（基于已出队玩家）===
         self.service_window_size = service_window_size
-        self.service_times: deque[float] = deque(maxlen=service_window_size)  # 每人的实际服务时间
-        self.last_dequeued: Optional[tuple[int, float]] = None  # (position_before_dequeue, timestamp)
+        self.service_times: deque[float] = deque(
+            maxlen=service_window_size
+        )  # 每人的实际服务时间
+        self.last_dequeued: Optional[tuple[int, float]] = (
+            None  # (position_before_dequeue, timestamp)
+        )
 
         # === 排队速率估计（基于你的位置变化）===
         self.drain_window_duration = drain_window_duration
-        self.position_history: deque[tuple[float, int]] = deque()  # (timestamp, position)
-        
+        self.position_history: deque[tuple[float, int]] = (
+            deque()
+        )  # (timestamp, position)
+
         # === 其他参数 ===
         self.min_drain_samples = min_drain_samples
         self.max_eta_sec = max_eta_sec
@@ -67,7 +72,10 @@ class QueueEtaService:
         要求：窗口内至少有 min_drain_samples 次有效移动
         """
         # 清理过期数据
-        while self.position_history and now - self.position_history[0][0] > self.drain_window_duration:
+        while (
+            self.position_history
+            and now - self.position_history[0][0] > self.drain_window_duration
+        ):
             self.position_history.popleft()
 
         self.position_history.append((now, current))
@@ -96,7 +104,9 @@ class QueueEtaService:
 
         return dq / dt  # 人/秒
 
-    def look(self, current: int, utc_timestamp: float | None = None) -> Optional[timedelta]:
+    def look(
+        self, current: int, utc_timestamp: float | None = None
+    ) -> Optional[timedelta]:
         """
         输入当前队列位置和 UTC 时间戳，返回 ETA。
         - 若 current <= 0: 返回 0
