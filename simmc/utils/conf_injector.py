@@ -4,11 +4,13 @@ import os
 import tempfile
 import threading
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TypeVar
 
 from .smart_serializer import deserialize_value, serialize_value
 
 _LOCK = threading.Lock()
+
+_T = TypeVar("_T", bound=type)
 
 _INJECTOR_CONFIG_PATH = None
 
@@ -120,7 +122,7 @@ class ConfigInject:
         self._fields = set(at) if at else None
         self._conf_name = name
 
-    def __call__(self, cls: type):
+    def __call__(self, cls: _T) -> _T:
         original_init = cls.__init__
         conf_name = (
             self._conf_name or cls.__qualname__
@@ -142,8 +144,8 @@ class ConfigInject:
             fields_to_inject = self._fields or set(field_types.keys())
 
             with ConfigSession(
-                self.conf_path, instance, field_types, conf_name, fields_to_inject
-            ):  # type: ignore
+                self.conf_path, instance, field_types, conf_name, fields_to_inject # type: ignore
+            ):
                 pass
 
         cls.__init__ = new_init
