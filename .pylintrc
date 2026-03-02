@@ -1,350 +1,335 @@
-# .pylintrc - 推荐的 Python 代码质量检查配置
+# .pylintrc for Python 3.14 projects (Windows-compatible)
+# 基于 Pylint 4.0.x 配置，平衡了严格性与实用性
+# 参考文档: https://pylint.readthedocs.io/
 
-[MASTER]
-# 忽略的文件/目录（版本控制、虚拟环境、第三方代码）
-ignore=.git,__pycache__,.venv,venv,env,node_modules,migrations,alembic/versions
-ignore-patterns=.*\.egg-info,.*\.dist-info
+[MAIN]
 
-# 并行处理以加速检查
-jobs=0
+# 分析模式，可以同时开启多个线程提高速度
+jobs=4
 
-# 加载插件（如有需要可取消注释）
-# load-plugins=pylint_django,pylint_celery
+# 依赖的第三方模块可能会产生一些无法避免的警告，这里忽略它们
+# 例如：C扩展、动态生成的属性等
+extension-pkg-allow-list=
 
-# 递归检查所有子目录
-recursive=yes
+# 如果项目使用了PyQt、PySide等库，可以取消下面这行的注释
+# extension-pkg-whitelist=PyQt5,PySide2
 
-# 初始化钩子（用于修改 Python 路径等）
-# init-hook='import sys; sys.path.append(".")'
+# 初始化钩子，可用于动态修改sys.path等
+init-hook=
+
+# 当无法导入某个模块时，是否将其视为错误
+# 设为no可以避免因缺少开发依赖而导致大量误报
+ignore-imports=no
+
+# 分析失败时的退出代码
+# 2代表如果有错误（error）就退出，0代表总是成功退出（不推荐CI使用）
+fail-under=10
+
+# 允许的魔法值列表（例如在代码中直接出现的数字、字符串）
+# 加入了常见的测试数据长度和状态码
+good-magic-values=200,404,500,1024,4096
+
+# 加载的插件
+# 可以添加一些扩展，如：pylint.extensions.code_style, pylint.extensions.docparams
+load-plugins=
+
+# 不检查第三方库中的bug（即不进入库内部检查）
+analyse-fallback-block=no
+
+# 在无法解析的模块上，不进行猜测
+# 减少因动态导入导致的误报
+py-version=3.14
+
+# 持久化结果文件，用于增量检查
+persistent=yes
+
+# 将发现的错误缓存起来，下次运行时只检查修改过的文件
+cache-size=500
+
 
 [MESSAGES CONTROL]
-# 禁用过于严格或不适合现代 Python 的检查
+
+# 禁用部分检查。原则：保留有用的，去掉过于教条或与现代化开发方式冲突的
+# C0114, C0115, C0116: 模块/类/函数强制要求docstring（现代开发中并非必须）
+# R0903: 类太简单（少于2个public方法），对于数据类（dataclass）过于严苛
+# R0913: 参数太多，对于某些配置类或初始化方法可以接受
+# R0914: 局部变量太多，现代IDE和函数拆分可以处理，不必过于教条
+# R0915: 语句太多
+# W0511: TODO/FIXME 标记，在开发阶段可以保留，正式发布前可以启用检查
+# R0801: 重复代码，这个检查在项目初期会很多，可以先关闭，后期定期开启重构
+# C0302: 模块行数过多（超过1000行），大型模块可能需要，初期可以先关闭
+# W0707: 在except中raise原始异常时未使用from，Pylint有时会误判，可根据团队习惯开启
+# R1705: 在if判断后直接return/break，else多余，这种写法更清晰，不强制消除else
+# R1728: 建议使用生成器，对于追求可读性的代码，不强制优化小内存占用
+# R1729: 建议使用any()/all()，同上，不强制
+# W0238: 未使用的参数名称（在抽象方法或回调函数中经常需要保留参数名以符合接口）
+# W0613: 未使用的参数，同上，对于钩子函数、回调函数经常出现
+# W0221: 参数个数不匹配（当子类重写父类方法时参数签名不一致），在某些框架（如DRF）中常见，适度放宽
 disable=
-    # 格式相关（使用 Black/ruff 处理格式，Pylint 专注逻辑）
-    C0301,  # line-too-long (由 Black 处理)
-    C0303,  # trailing-whitespace
-    C0304,  # missing-final-newline
-    C0321,  # multiple-statements (单行 if/return 是常见写法)
-    
-    # 文档字符串（新项目可启用，遗留项目建议禁用）
-    C0114,  # missing-module-docstring
-    C0115,  # missing-class-docstring
-    C0116,  # missing-function-docstring
-    
-    # 命名规范（允许短变量名，如 i, x, id 等）
-    C0103,  # invalid-name (过于严格，会报错单字母变量)
-    C0104,  #disallowed-name
-    
-    # 设计相关（允许合理的类/函数复杂度）
-    R0901,  # too-many-ancestors (继承多很正常，如 Django)
-    R0902,  # too-many-instance-attributes
-    R0903,  # too-few-public-methods (数据类、异常类很正常)
-    R0904,  # too-many-public-methods
-    R0911,  # too-many-return-statements
-    R0912,  # too-many-branches
-    R0913,  # too-many-arguments (Python 3.8+ 有 positional-only)
-    R0914,  # too-many-locals
-    R0915,  # too-many-statements
-    
-    # 代码风格（主观性较强）
-    R0801,  # duplicate-code (经常误报，如相似的测试用例)
-    R0401,  # cyclic-import (循环导入有时是设计选择)
-    W0143,  # comparison-with-callable (有时是故意的设计)
-    
-    # 现代 Python 特性
-    W1203,  # logging-fstring-interpolation (f-string 在日志中性能可接受)
-    W0237,  # arguments-renamed (子类重命名参数有时是有意义的)
-    
-    # 其他实用禁用
-    W0511,  # fixme (允许 TODO/FIXME 注释)
-    C0415,  # import-outside-toplevel (延迟导入是常见优化)
-    W0703,  # broad-except (有时需要捕获通用异常)
-    R1725,  # super-with-arguments (Python 3 兼容代码需要)
-    R1735,  # use-dict-literal (dict() 有时更清晰)
+    C0114,
+    C0115,
+    C0116,
+    R0903,
+    R0913,
+    R0914,
+    R0915,
+    W0511,
+    R0801,
+    C0302,
+    W0707,
+    R1705,
+    R1728,
+    R1729,
+    W0238,
+    W0613,
+    W0221,
 
-    W0231,  # super-init-not-called (有时故意不调用父类init)
-    W0603,  # global-statement (全局状态有时是必要的)
-    W0201,  # attribute-defined-outside-init (ORM/延迟初始化常见)
-    W0212,  # protected-access (访问私有成员有时是设计选择)
-    W0223,  # abstract-method (如果基类提供默认实现)
-    W0613,  # unused-argument (接口兼容、回调函数常见)
-    C0105,  # typevar-name-incorrect-variance (命名约定过于严格)
-    R0917,  # too-many-positional-arguments (Python 3.8+ 有 pos-only)
-    I1101,  # c-extension-no-member (C扩展无法静态分析)
-    E0401,  # import-error (条件导入/平台特定导入)
-    W2301,  # unnecessary-ellipsis (如果用于标记抽象/待实现)
+# 需要启用的额外检查（默认已开启大部分，这里列出一些可选的）
+# 如果需要更严格的代码风格，可以取消下面的注释
+# enable=
+#     useless-suppression,  # 检查是否有无用的disable注释
+#     deprecated-module,    # 检查是否使用了已废弃的模块（Python 3.14可能会标记更多）
+#     f-string-without-interpolation, # f-string没有使用变量，应该用普通字符串
 
-    I0021,  # useless-suppression（允许保留多余的禁用注释）
-    W0621,  # redefined-outer-name（允许变量名遮蔽）
-    W0612,  # unused-variable（允许未使用变量）
-    C0325,  # superfluous-parens（允许多余括号）
-    C0123,  # unidiomatic-typecheck（允许用 type()）
-
-# 启用默认禁用的有用检查
-enable=
-    useless-suppression,  # 报告不必要的 pylint 禁用注释
-    deprecated-pragma,    # 报告已弃用的 pragma 使用
 
 [REPORTS]
-# 输出格式
+
+# 输出格式，默认是text，也可以使用colorized让错误信息有颜色
 output-format=colorized
 
-# 评分阈值（10 为满分，可根据团队要求调整）
+# 是否显示统计信息，如错误总数
+reports=no
+
+# 分数，低于此分数会失败
+score=yes
 fail-under=8.0
 
-# 报告生成
-reports=no
-score=yes
+# 在输出中包含消息的ID（如W0612），方便查找和禁用
+include-ids=yes
 
-# 消息模板
-msg-template={path}:{line}:{column}: {msg_id}: {msg} ({symbol})
+# 输出中显示符号名（如unused-variable）而不是ID
+symbols=yes
+
 
 [REFACTORING]
-# 最大嵌套块数
+
+# 最大嵌套块深度（例如if/for/while嵌套）
 max-nested-blocks=5
 
-# 建议的最大参数数量（比默认值宽松）
-max-args=8
+# 最大分支数（McCabe复杂度）
+max-branchs=12
 
-# 建议的最大局部变量数
-max-locals=20
+# 最小相似行数，用于检测重复代码
+min-similarity-lines=4
 
-# 建议的最大返回语句数
-max-returns=8
-
-# 建议的最大分支数
-max-branches=15
-
-# 建议的最大语句数
-max-statements=60
-
-# 建议的最大父类数
-max-parents=7
-
-# 建议的最大属性数
-max-attributes=10
-
-# 建议的最大公共方法数
-max-public-methods=25
-
-[BASIC]
-# 良好名称（允许常见的短名称）
-good-names=i,j,k,n,x,y,z,_,id,pk,qs,df,ex,Run,_,logger,app,db
-
-# 正则表达式命名规范（比默认宽松）
-argument-rgx=[a-z_][a-z0-9_]{0,30}$
-variable-rgx=[a-z_][a-z0-9_]{0,30}$
-attr-rgx=[a-z_][a-z0-9_]{0,30}$
-method-rgx=[a-z_][a-z0-9_]{0,30}$
-function-rgx=[a-z_][a-z0-9_]{0,30}$
-
-# 类名规范（允许大写缩写如 HTTPError）
-class-rgx=[A-Z_][a-zA-Z0-9_]+$
-
-# 常量名规范
-const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
-
-# 模块名规范
-module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
-
-# 类属性名规范
-class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{0,30}|(__.*__))$
-
-# 内联变量名规范（推导式中的变量）
-inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
-
-# 属性名规范
-property-classes=abc.abstractproperty,cached_property,property
-
-[FORMAT]
-# 最大行长度（与 Black 默认一致）
-max-line-length=88
-
-# 缩进空格数
-indent-after-paren=4
-indent-string='    '
-
-# 最大空行数
-max-module-lines=1000
-max-args=8
-
-[LOGGING]
-# 日志格式字符串检查
-logging-modules=logging
-
-# 支持 f-string 日志（现代 Python）
-logging-format-style=new
-
-[MISCELLANEOUS]
-# 标记需要关注的注释
-notes=FIXME,XXX,TODO,HACK,BUG,NOTE
-
-[SIMILARITIES]
-# 最小相似行数（避免误报）
-min-similarity-lines=8
-
-# 忽略注释和文档字符串中的相似性
-ignore-comments=yes
-ignore-docstrings=yes
-ignore-imports=yes
-ignore-signatures=yes
-
-[TYPECHECK]
-# 动态生成的成员（避免误报）
-generated-members=
-    REQUEST,
-    acl_users,
-    aq_parent,
-    objects,
-    DoesNotExist,
-    _meta,
-    id,
-    pk,
-    save,
-    delete,
-    objects,
-    get,
-    filter,
-    exclude,
-    order_by,
-    values,
-    values_list,
-    count,
-    first,
-    last,
-    exists,
-    create,
-    update,
-    bulk_create,
-    bulk_update,
-    delete,
-    select_related,
-    prefetch_related,
-    annotate,
-    aggregate,
-    distinct,
-    extra,
-    raw,
-    defer,
-    only,
-    using,
-    iterator,
-    earliest,
-    latest,
-    first,
-    last,
-    reverse,
-    all,
-    get_or_create,
-    update_or_create
-
-# 忽略特定类的属性检查（如 ORM 动态属性）
-ignored-classes=
-    optparse.Values,
-    thread._local,
-    _thread._local,
-    Context,
-    contextvars.Context,
-    django.db.models.Model,
-    sqlalchemy.orm.Session,
-    requests.Response,
-    pandas.DataFrame,
-    pandas.Series,
-    numpy.ndarray,
-    argparse.Namespace
-
-# 忽略特定模块的缺失成员（C 扩展等）
-ignored-modules=
-    numpy,
-    pandas,
-    torch,
-    tensorflow,
-    cv2,
-    lxml,
-    pydantic,
-    django,
-    flask,
-    sqlalchemy,
-    alembic,
-    celery,
-    redis,
-    boto3,
-    botocore,
-    urllib3,
-    requests,
-    PIL,
-    matplotlib,
-    sklearn,
-    scipy
-    win32gui,
-    win32con,
-    AppKit,
-    Quartz
-
-extension-pkg-allow-list=win32gui,win32con
 
 [VARIABLES]
-# 允许未使用的变量（下划线开头或特定名称）
-dummy-variables-rgx=_$|dummy|unused|args|kwargs
 
-# 回调函数中允许未使用的参数
-callbacks=cb,_cb,callback,_callback,handle,on_change,on_click
+# 是否允许重新定义内置名称（如list, dict等）
+# 出于安全考虑，建议禁止
+allow-redefined-builtins=no
 
-# 不警告内置函数覆盖（如 id, type, sum 等）
-redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
+# 未使用变量的正则表达式，以下划线开头的变量被认为是故意未使用的
+dummy-variables-rgx=_$|dummy|ignore|unused
+
+# 在列表推导式、lambda等中允许未使用的变量
+allowed-redefined-builtins=
+
+# 在函数调用中，参数名和局部变量名可以重名
+# 但建议避免，这里保持默认关闭
+allow-global-unused-variables=yes
+
+# 定义变量的位置检查，主要检查在if/else/for等结构中定义后是否被使用
+init-import=no
+
+
+[FORMAT]
+
+# 期望的最大行宽，PEP8建议79，但现代显示器大多接受更长的行
+# 团队内统一即可，这里设为120
+max-line-length=120
+
+# 单行最大字符数（包括注释），一般和上面保持一致
+max-module-lines=2000
+
+# 字符串中每行的最大字符数
+max-string-length=200
+
+# 期望的缩进风格
+indent-string='    '  # 4个空格
+
+# 期望的换行符，Windows用\r\n，Unix/Linux用\n
+# 移除有问题的expected-line-ending-format参数，改用下面的替代方案
+# Pylint在Windows下会自动处理行尾格式
+# 如果你需要强制检查行尾格式，可以使用：
+# [TOOL.pylint.format]
+# expected-line-ending-format = LF
+
+# 单行最大字符数
+single-line-if-stmt=no
+
+
+[MISCELLANEOUS]
+
+# 需要查找的注释标记（如TODO、FIXME等）
+# 如果不想让这些标记被当作问题，可以在MESSAGES CONTROL中禁用W0511
+notes=FIXME,XXX,TODO
+
+# 是否在docstring中检查notes，Pylint 4.0支持此功能
+# 注意：这个参数在Windows下可能有兼容性问题，先关闭
+# check-fixme-in-docstring=no
+
+
+[SIMILARITIES]
+
+# 忽略导入语句的相似性比较
+ignore-imports=yes
+
+# 忽略签名的相似性比较（函数名、参数名不同但内容相同）
+ignore-signatures=yes
+
+# 最小相似行数，低于此行数不报告
+min-similarity-lines=8
+
+
+[TYPECHECK]
+
+# 忽略缺少的模块成员（即模块存在但某些属性动态生成，无法静态分析）
+# 可以在这里列出模块名
+ignored-modules=
+
+# 忽略的类成员，适用于一些动态添加属性的情况
+ignored-classes=
+
+# 生成器中的yield返回值类型检查
+generated-members=
+
+# 上下文管理器中的yield检查
+contextmanager-decorators=contextlib.contextmanager
+
 
 [CLASSES]
-# 检查 __init__ 中定义的实例属性
-check-protected-access-in-special-methods=no
 
-# 允许在 __init__ 外定义实例属性（如 ORM 模型）
-exclude-protected=_asdict,_fields,_replace,_source,_make,os._exit
+# 定义哪些方法名被认为是特殊的（如抽象方法、属性方法等）
+# 默认包含property, classmethod, staticmethod
+defining-attr-methods=__init__,__new__,__call__
+
+# 有效的父类方法名前缀，用于检查子类是否正确重写了父类方法
+valid-metaclass-classmethod-first-arg=cls
+
+# 退出时清理的类
+exclude-protected=_asdict,_fields,_replace,_source,_make
+
+# 识别@property装饰器的替代品
+property-classes=abc.abstractproperty
+
 
 [DESIGN]
-# 最大父类数
+
+# 父类个数最大值（避免过于复杂的多继承）
 max-parents=7
 
-# 最小公共方法数（数据类、异常类除外）
-min-public-methods=1
+# 属性个数最大值
+max-attributes=7
 
-# 最大公共方法数
-max-public-methods=25
+# 方法个数最小值（类至少有多少方法，低于此值会提示R0903）
+# 设为0，结合disable R0903来彻底关闭
+min-public-methods=0
+max-public-methods=20
 
-# 最大布尔表达式数
+# 实例属性个数
+max-instance-attributes=7
+
+# 局部变量类型个数（函数内）
+max-locals=15
+
+# 返回值个数（函数内return语句数量）
+max-returns=6
+
+# 分支数（if/else/for/while等）
+max-branches=12
+
+# 语句数
+max-statements=50
+
+# 布尔表达式中的操作符数量
 max-bool-expr=5
 
+
 [IMPORTS]
-# 允许通配符导入的模块
+
+# 禁止循环导入
+allow-any-import-level=
+
+# 分组导入顺序（标准库、第三方、本地）
+# 需要配合isort使用，Pylint 4.0.0要求isort >=5.0.0
+known-standard-library=
+known-third-party=enchant
+
+# 导入顺序检查
+max-module-depth=10
+
+# 允许的导入模块深度
 allow-wildcard-with-all=no
 
-# 强制使用绝对导入
-allow-any-import-level=no
+# 首选模块导入方式
+preferred-modules=
 
-# 建议的导入顺序分组
-known-third-party=numpy,pandas,requests,django,flask,fastapi,pydantic,sqlalchemy,celery,redis,boto3,pytest
 
-# 扩展的导入顺序
-ext-import-graph=
-int-import-graph=
+[BASIC]
+
+# 变量命名风格，camelCase还是snake_case
+# Python官方建议使用snake_case
+variable-rgx=[a-z_][a-z0-9_]{0,30}$
+function-rgx=[a-z_][a-z0-9_]{0,30}$
+method-rgx=[a-z_][a-z0-9_]{0,30}$
+class-rgx=[A-Z_][a-zA-Z0-9]+$
+module-rgx=[a-z_][a-z0-9_]*$
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+
+# 好名字列表（允许短名字，即使不符合命名规则）
+# 加入常见的变量名如i, j, k, v, e, ex, fp, fd等
+good-names=
+    i,
+    j,
+    k,
+    v,
+    e,
+    ex,
+    fp,
+    fd,
+    f,
+    _,
+    logger
+
+# 坏名字列表（禁止使用的名字）
+bad-names=foo,bar,baz,toto,tutu,tata
+
+# 类属性命名规则
+class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$
+
+# 参数命名规则
+argument-rgx=[a-z_][a-z0-9_]{0,30}$
+
+# 变量属性命名规则
+variable-attributes-rgx=[a-z_][a-z0-9_]{0,30}$
+
+# 内联变量命名规则（如for循环中的变量）
+inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
+
+# 模块级常量的处理（Pylint 4.0对常量和变量的区分更精确）
+# 如果常量被重新赋值，将被视为变量并使用variable-rgx检查
+const-naming-style=UPPER_CASE
+
+# 允许使用django、flask等框架的命名风格
+include-naming-hint=yes
+
 
 [EXCEPTIONS]
-# 允许捕获的异常名称
-overgeneral-exceptions=builtins.BaseException,builtins.Exception
 
-[STRING]
-# 检查字符串引号一致性（Black 处理）
-check-quote-consistency=no
+# 重载内置异常
+overgeneral-exceptions=BaseException,Exception
 
-# 检查隐式字符串连接
-check-str-concat-over-line-jumps=no
-
-[SPELLING]
-# 拼写检查（如需启用，安装 pylint[spelling]）
-spelling-dict=
-spelling-ignore-words=
-spelling-private-dict-file=
-spelling-store-unknown-words=no
-
-[ELIF]
-# 建议将 elif 转换为 if（当没有 else 时）
-disable=no-else-return,no-else-raise,no-else-break,no-else-continue
+# 忽略在except块中过于宽泛的异常
+# 比如直接使用except: 而不指定异常类型
+allow-bare-except=no

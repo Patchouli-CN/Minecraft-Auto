@@ -78,7 +78,7 @@ class JsonTriggerService:
         sig = inspect.signature(ctor)
         ev_dict = ev.__dict__
         filled = args.copy()
-        for name, param in sig.parameters.items():
+        for name, _ in sig.parameters.items():
             # 构造器要求、用户没给、事件里刚好有，就自动补
             if name not in filled and name in ev_dict:
                 filled[name] = ev_dict[name]
