@@ -17,7 +17,7 @@ event_scheduler = EventLoopScheduler()
 ctrl = PlayerControl()
 
 fluent_init_control(ctrl)
-    
+
 event_scheduler.add_start_prepare(ctrl.start)
 event_scheduler.add_exit_callback(ctrl.stop)
 
