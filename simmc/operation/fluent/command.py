@@ -42,6 +42,7 @@ class ChatCommandFluent(ServerCommand, FluentBase):
 
     @json_export
     def sendto(self, player: str) -> Self:
+        """ 发送给谁？"""
         if not player or player.strip() == "":
             raise ValueError(
                 "say to who? I say to air? ╰（‵□′）╯, Maybe you want `.to_all()` instead of `.sendto('')` ?"
@@ -52,12 +53,14 @@ class ChatCommandFluent(ServerCommand, FluentBase):
 
     @json_export
     def to_all(self) -> Self:
+        """ 给全部人 """
         self._player = None
         self._channel = CMD_CHANNEL_TABLE["全局"]
         return self
 
     @json_export
     def interval(self, time: TimeDeltaLike = 1.0) -> Self:
+        """ 打字间隔 """
         self._interval = time
         return self
 

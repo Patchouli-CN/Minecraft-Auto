@@ -25,10 +25,6 @@ ignore-imports=no
 # 2代表如果有错误（error）就退出，0代表总是成功退出（不推荐CI使用）
 fail-under=10
 
-# 允许的魔法值列表（例如在代码中直接出现的数字、字符串）
-# 加入了常见的测试数据长度和状态码
-good-magic-values=200,404,500,1024,4096
-
 # 加载的插件
 # 可以添加一些扩展，如：pylint.extensions.code_style, pylint.extensions.docparams
 load-plugins=
@@ -42,9 +38,6 @@ py-version=3.14
 
 # 持久化结果文件，用于增量检查
 persistent=yes
-
-# 将发现的错误缓存起来，下次运行时只检查修改过的文件
-cache-size=500
 
 
 [MESSAGES CONTROL]
@@ -104,30 +97,17 @@ reports=no
 score=yes
 fail-under=8.0
 
-# 在输出中包含消息的ID（如W0612），方便查找和禁用
-include-ids=yes
-
-# 输出中显示符号名（如unused-variable）而不是ID
-symbols=yes
-
 
 [REFACTORING]
 
 # 最大嵌套块深度（例如if/for/while嵌套）
 max-nested-blocks=5
 
-# 最大分支数（McCabe复杂度）
-max-branchs=12
-
 # 最小相似行数，用于检测重复代码
 min-similarity-lines=4
 
 
 [VARIABLES]
-
-# 是否允许重新定义内置名称（如list, dict等）
-# 出于安全考虑，建议禁止
-allow-redefined-builtins=no
 
 # 未使用变量的正则表达式，以下划线开头的变量被认为是故意未使用的
 dummy-variables-rgx=_$|dummy|ignore|unused
@@ -151,9 +131,6 @@ max-line-length=120
 
 # 单行最大字符数（包括注释），一般和上面保持一致
 max-module-lines=2000
-
-# 字符串中每行的最大字符数
-max-string-length=200
 
 # 期望的缩进风格
 indent-string='    '  # 4个空格
@@ -237,9 +214,6 @@ max-attributes=7
 min-public-methods=0
 max-public-methods=20
 
-# 实例属性个数
-max-instance-attributes=7
-
 # 局部变量类型个数（函数内）
 max-locals=15
 
@@ -265,9 +239,6 @@ allow-any-import-level=
 # 需要配合isort使用，Pylint 4.0.0要求isort >=5.0.0
 known-standard-library=
 known-third-party=enchant
-
-# 导入顺序检查
-max-module-depth=10
 
 # 允许的导入模块深度
 allow-wildcard-with-all=no
@@ -311,9 +282,6 @@ class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$
 # 参数命名规则
 argument-rgx=[a-z_][a-z0-9_]{0,30}$
 
-# 变量属性命名规则
-variable-attributes-rgx=[a-z_][a-z0-9_]{0,30}$
-
 # 内联变量命名规则（如for循环中的变量）
 inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
 
@@ -329,7 +297,3 @@ include-naming-hint=yes
 
 # 重载内置异常
 overgeneral-exceptions=BaseException,Exception
-
-# 忽略在except块中过于宽泛的异常
-# 比如直接使用except: 而不指定异常类型
-allow-bare-except=no
