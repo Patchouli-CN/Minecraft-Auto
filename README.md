@@ -24,7 +24,7 @@
    ```bash
    git clone https://github.com/Patchouli-CN/Minecraft-Auto.git
    ```
-- 之后下载Python 1.12及以上版本。
+- 之后下载Python 3.12及以上版本。
 
 [![Python](https://img.shields.io/badge/Python-3.12.10-3776AB?style=flat&logo=python&logoColor=white&labelColor=444444)](https://www.python.org/downloads/release/python-31210/)
 
