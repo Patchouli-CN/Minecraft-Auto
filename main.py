@@ -50,7 +50,7 @@ def on_tick(ev: KickEvent) -> None:
 async def on_view_changed(ev: ViewSyncEvent) -> None: 
     """ 如果视角被管理员同步，处理 """
     logger.warning(f"管理员: {ev.admin_name} 同步视角，发送假消息规避ing")
-    await chat("干嘛干嘛，要干嘛...").sendto(ev.admin_name)
+    await chat("干嘛干嘛，要干嘛...").send_to(ev.admin_name)
 
 @event_scheduler.on_event("断开")
 def on_disconnect(ev: DisconnectEvent) -> None:

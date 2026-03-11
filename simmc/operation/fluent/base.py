@@ -46,13 +46,14 @@ class FluentBase:
         return self
 
     def __await__(self):
-        return self._execute().__await__()
+        """ 语法糖，可以不用调用终结方法，直接`await`链条"""
+        return self.execute().__await__()
 
     def __rshift__(self, other: FluentBase | SeqChain) -> SeqChain:
         """链接下一个操作"""
         return SeqChain(self) >> other
 
-    async def _execute(self) -> None:
+    async def execute(self) -> None:
         """提交到玩家控制队列，唯一正确入口"""
         if not _global_control:
             raise RuntimeError("未设置PlayerControl, 请先 fluent_init_control")
@@ -99,7 +100,7 @@ class SeqChain:
 
     async def _run(self) -> None:
         for step in self._steps:
-            await step._execute()  # 每条都走 PlayerControl 队列
+            await step.execute()  # 每条都走 PlayerControl 队列
 
     def futures(self) -> list[asyncio.Future[None]]:
         return [s._fut for s in self._steps if s._fut]
@@ -175,4 +176,4 @@ def fluent_wait(sec: TimeDeltaLike) -> FluentBlock:
 
 async def fire(fluent: FluentBase) -> None:
     """立刻把 DSL 构建器塞进 PlayerControl 队列并等待完成"""
-    await fluent._execute()
+    await fluent.execute()

@@ -41,7 +41,7 @@ class ChatCommandFluent(ServerCommand, FluentBase):
         return self
 
     @json_export
-    def sendto(self, player: str) -> Self:
+    def send_to(self, player: str) -> Self:
         """ 发送给谁？"""
         if not player or player.strip() == "":
             raise ValueError(
