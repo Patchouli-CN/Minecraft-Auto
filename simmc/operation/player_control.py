@@ -48,6 +48,7 @@ class PlayerControl:
             self._worker_task = asyncio.create_task(self._worker())
 
     def stop(self) -> None:
+        """ 停止玩家控制器 """
         if self._worker_task is not None:
             self._worker_task.cancel()
             self._worker_task = None

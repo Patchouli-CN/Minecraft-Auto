@@ -1,7 +1,7 @@
 import sys
 from typing import Optional
 
-from .functools import sync_to_async
+from .utils_functools import sync_to_async
 
 # ------------------------------------------------------------------
 # Windows

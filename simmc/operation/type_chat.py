@@ -3,7 +3,7 @@ import time
 import pyautogui
 import pyperclip
 
-from ..utils.functools import sync_to_async
+from ..utils.utils_functools import sync_to_async
 
 # 防止 pyautogui 把鼠标飞走
 pyautogui.FAILSAFE = True

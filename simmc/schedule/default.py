@@ -13,7 +13,7 @@ from ..constants import BANNER
 from ..metadata import print_banner
 from ..schemas.event import EventBase, EventRequest
 from ..schemas.protocols import IListener, IService
-from ..utils.functools import sync_to_async
+from ..utils.utils_functools import sync_to_async
 from ..utils.logger import logger
 
 EVENT = TypeVar("EVENT", bound=EventBase, covariant=True)

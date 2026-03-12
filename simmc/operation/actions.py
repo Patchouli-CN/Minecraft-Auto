@@ -3,7 +3,7 @@ import time
 import pyautogui
 
 from ..utils.find_window import get_foreground_title
-from ..utils.functools import sync_to_async
+from ..utils.utils_functools import sync_to_async
 
 
 @sync_to_async

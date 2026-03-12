@@ -20,7 +20,7 @@ log_file_path = log_dir / log_file_name
 # 配置 loguru 日志
 FILEHANDLER = logger.add(
     log_file_path,
-    format="{time:HH:mm:ss} | {level:<8} | {thread.name:<12} / {name} | {function}:{line:03d} | {message}",
+    format="[{thread.name:^12}] {time:HH:mm:ss} | {level:<8} | {name}.{function}:{line:03d} | {message}",
     level="DEBUG",
     rotation="1 week",
     compression="zip",
@@ -32,7 +32,7 @@ FILEHANDLER = logger.add(
 # 添加控制台日志输出
 CONSOLEHANDLER = logger.add(
     sys.stderr,
-    format="<level>{time:HH:mm:ss} | {level:<8} | {thread.name:<12} / {name} | {function}:{line:03d} | {message}</level>",
+    format="<level>[{thread.name:^12}] {time:HH:mm:ss} | {level:<8} | {name}.{function}:{line:03d} | {message}</level>",
     level="TRACE",
     colorize=True,
 )

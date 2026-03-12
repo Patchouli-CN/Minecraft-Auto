@@ -8,7 +8,7 @@ import pytesseract
 from ..constants import ROI, TESSERACT_CMD
 from ..utils.logger import logger  # 引入日志
 from .find_window import get_foreground_title
-from .functools import sync_to_async
+from .utils_functools import sync_to_async
 
 QUEUE_RE = re.compile(r"(\d+)\s*/\s*(\d+)")
 pytesseract.pytesseract.tesseract_cmd = str(TESSERACT_CMD)
