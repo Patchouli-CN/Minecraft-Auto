@@ -1,4 +1,3 @@
-
 from typing import Any, Protocol, cast
 
 from py4j.java_gateway import JavaClass, JavaGateway, JavaObject

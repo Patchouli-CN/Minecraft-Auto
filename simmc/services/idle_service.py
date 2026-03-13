@@ -20,6 +20,7 @@ class IdleService:
 
     # --------- 原逻辑保持不变 ---------
     async def handle_idle(self, ev: PlayerIdleEvent) -> None:
+        """处理检测到挂机的情况"""
         if self.detected:  # 防止重复协程
             return
         self.detected = True
@@ -29,10 +30,13 @@ class IdleService:
             await (jump(3).interval(1).timeout(4) >> fluent_wait(4))
 
     def handle_resume(self, ev: PlayerResumeEvent) -> None:
+        """处理服务器挂机恢复回显的情况"""
         if not self.detected:
             return
         self.detected = False
         logger.info(f"已经骗过服务器 {self._detected_nums} 次.")
 
+    @property
     def detect_times(self) -> int:
+        """已检测次数"""
         return self._detected_nums

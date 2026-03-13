@@ -42,11 +42,12 @@ class FluentBase:
     _fut: asyncio.Future[None] | None = None
 
     def timeout(self, sec: TimeDeltaLike) -> Self:
+        """设置超时"""
         self._timeout = sec
         return self
 
     def __await__(self):
-        """ 语法糖，可以不用调用终结方法，直接`await`链条"""
+        """语法糖，可以不用调用终结方法，直接`await`链条"""
         return self.execute().__await__()
 
     def __rshift__(self, other: FluentBase | SeqChain) -> SeqChain:
@@ -54,7 +55,7 @@ class FluentBase:
         return SeqChain(self) >> other
 
     async def execute(self) -> None:
-        """提交到玩家控制队列，唯一正确入口"""
+        """提交到玩家控制队列，终结方法"""
         if not _global_control:
             raise RuntimeError("未设置PlayerControl, 请先 fluent_init_control")
         handler = self._build_handler()
@@ -103,10 +104,13 @@ class SeqChain:
             await step.execute()  # 每条都走 PlayerControl 队列
 
     def futures(self) -> list[asyncio.Future[None]]:
+        """获取所有携程"""
         return [s._fut for s in self._steps if s._fut]
 
 
 class TimeoutChain:
+    """超时链条"""
+
     __slots__ = ("_chain", "_sec")
 
     def __init__(self, chain: SeqChain, sec: TimeDeltaLike) -> None:
@@ -143,6 +147,7 @@ class JumpFluent(FluentBase):
 
     @json_export
     def interval(self, sec: TimeDeltaLike) -> Self:
+        """间隔"""
         self._interval = sec
         return self
 

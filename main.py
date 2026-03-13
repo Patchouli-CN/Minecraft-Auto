@@ -1,8 +1,14 @@
-
 import asyncio
 from simmc.schedule.default import EventLoopScheduler
 from simmc.listeners.evt_listener import MinecraftLogListener
-from simmc.schemas.event import WhisperEvent, KickEvent, ViewSyncEvent, DisconnectEvent, GameCrashedEvent, LandInviteEvent
+from simmc.schemas.event import (
+    WhisperEvent,
+    KickEvent,
+    ViewSyncEvent,
+    DisconnectEvent,
+    GameCrashedEvent,
+    LandInviteEvent,
+)
 from simmc.utils.logger import logger
 from simmc.operation.fluent.base import fluent_init_control, jump, fluent_wait
 from simmc.operation.fluent.command import chat
@@ -22,14 +28,15 @@ event_scheduler.add_start_prepare(ctrl.start)
 event_scheduler.add_exit_callback(ctrl.stop)
 
 # 1. 添加监听器
-event_scheduler.add_listener(MinecraftLogListener())
+event_scheduler.add_listener("game_log", MinecraftLogListener())
 
 # 2. 添加服务
 ce_svc = ChannelEnsureService(MYSELF, 5)
 idle_svc = IdleService()
-event_scheduler.add_service(ce_svc) # 挂载服务到总控，用于接收事件
-event_scheduler.add_service(idle_svc)
-event_scheduler.add_service(JsonTriggerService())
+event_scheduler.service(ce_svc)
+event_scheduler.service(idle_svc)
+event_scheduler.service(JsonTriggerService())
+
 
 # 3. 注册事件回调
 @event_scheduler.on_event("悄悄话")
@@ -41,33 +48,39 @@ async def on_whisper(ev: WhisperEvent) -> None:
         # current_channel = await ce_svc.get_channel()
         # await chat(f"当前频道: {current_channel}").sendto("Kamishirasawa_CN")
 
+
 @event_scheduler.on_event("踢出")
 def on_tick(ev: KickEvent) -> None:
-    """ 被踢出处理 """
+    """被踢出处理"""
     raise KeyboardInterrupt(f"啊！我被踢了，程序自动退出...")
 
+
 @event_scheduler.on_event("视角同步")
-async def on_view_changed(ev: ViewSyncEvent) -> None: 
-    """ 如果视角被管理员同步，处理 """
+async def on_view_changed(ev: ViewSyncEvent) -> None:
+    """如果视角被管理员同步，处理"""
     logger.warning(f"管理员: {ev.admin_name} 同步视角，发送假消息规避ing")
     await chat("干嘛干嘛，要干嘛...").send_to(ev.admin_name)
 
+
 @event_scheduler.on_event("断开")
 def on_disconnect(ev: DisconnectEvent) -> None:
-    """ 日志出现断开字样，立即自杀 """
+    """日志出现断开字样，立即自杀"""
     raise KeyboardInterrupt(f"检测到断开，程序马上退出...")
+
 
 @event_scheduler.on_event("领地邀请")
 async def on_land_invite(ev: LandInviteEvent) -> None:
-    """ 处理领地邀请 """
+    """处理领地邀请"""
     await land(ev.land_name).invite.accept()
     # async with land(ev.land_name).edit() as editor:
     #     await editor.claim.erase.auto()
+
 
 @event_scheduler.on_event("游戏崩溃")
 def on_game_crashed(ev: GameCrashedEvent) -> None:
     logger.critical("MC 核心崩溃，框架立即退出！")
     raise KeyboardInterrupt("检测到游戏崩溃")
+
 
 if __name__ == "__main__":
     asyncio.run(event_scheduler.loop())

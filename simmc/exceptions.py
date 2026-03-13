@@ -8,3 +8,7 @@ class ConfigFileError(SimmCFrameworkException):
 
 class ServerCommandError(SimmCFrameworkException):
     """指令不正确"""
+
+
+class ListenerNotFoundError(SimmCFrameworkException):
+    """监听器没找到"""

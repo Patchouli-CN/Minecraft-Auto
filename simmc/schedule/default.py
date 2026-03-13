@@ -8,6 +8,8 @@ from collections.abc import Awaitable, Callable, Coroutine
 from datetime import timedelta
 from time import monotonic
 from typing import Any, Self, TypeVar
+from dataclasses import dataclass, field
+from inspect import isclass
 
 from ..constants import BANNER
 from ..metadata import print_banner
@@ -15,9 +17,19 @@ from ..schemas.event import EventBase, EventRequest
 from ..schemas.protocols import IListener, IService
 from ..utils.utils_functools import sync_to_async
 from ..utils.logger import logger
+from ..exceptions import ListenerNotFoundError
 
 EVENT = TypeVar("EVENT", bound=EventBase, covariant=True)
 Handler = Callable[[EVENT], None] | Callable[[EVENT], Awaitable[None]]
+
+
+@dataclass
+class ServiceBinding:
+    """服务绑定信息"""
+
+    service: IService
+    sources: set[str] = field(default_factory=lambda: {"*"})  # 默认监听所有
+    exclude: set[str] = field(default_factory=set)
 
 
 class EventLoopScheduler:
@@ -33,6 +45,8 @@ class EventLoopScheduler:
         self._exit_callbacks: list[Callable[..., None]] = []
         self._startup_prepares: list[Callable[..., None]] = []
         self._svc_routes: list[tuple[IService, tuple[type, ...]]] = []
+        self._listener_registry: dict[str, IListener] = {}  # 命名监听器
+        self._bindings: list[ServiceBinding] = []
         self._runner: asyncio.Task | None = None
         self._start_mono: float = monotonic()
 
@@ -72,19 +86,33 @@ class EventLoopScheduler:
             self._event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._event_loop)
 
-    def add_listener(self, listener: IListener) -> None:
-        """添加监听器"""
-        logger.debug(f"添加监听器：{type(listener).__name__}")
+    def add_listener(self, name: str, listener: IListener) -> Self:
+        """给监听器起个名字"""
+        self._listener_registry[name] = listener
         self._listeners.append(listener)
+        return self
 
-    def add_service(self, svc: IService) -> None:
+    def service(
+        self, service_cls: type[IService] | IService, *service_args, **service_kwargs
+    ) -> _ServiceBinder:
         """添加服务"""
-        self._services.append(svc)
-        wanted_types = self._extract_event_types(svc)
-        self._svc_routes.append((svc, wanted_types))
-        logger.debug(
-            f"服务 {type(svc).__name__} 注册事件类型 {wanted_types}; 描述: {type(svc).__doc__}"
-        )
+        return _ServiceBinder(self, service_cls, service_args, service_kwargs)
+
+    def _bind_service(self, service: IService, sources: set[str], exclude: set[str]):
+        """内部绑定逻辑"""
+        # 验证 sources 是否存在
+        for src in sources:
+            if src != "*" and src not in self._listener_registry:
+                raise ListenerNotFoundError(
+                    f"监听器 '{src}' 不存在\n"
+                    f"你是不是忘了 .add_listener('{src}', ...)？\n"
+                    f"或者你想用 '*' 监听所有源？"
+                )
+
+        binding = ServiceBinding(service, sources, exclude)
+        self._bindings.append(binding)
+        self._services.append(service)
+        return binding
 
     def add_start_prepare(self, start_prepare_function: Callable[..., None]) -> None:
         """添加启动前置执行"""
@@ -244,3 +272,65 @@ class EventLoopScheduler:
         await self.stop()
         if self._runner and not self._runner.done():
             await self._runner
+
+
+class _ServiceBinder:
+    """服务绑定器 - 提供 fluent API"""
+
+    def __init__(
+        self,
+        scheduler: EventLoopScheduler,
+        service_cls: type[IService] | IService,
+        *service_args,
+        **service_kwargs,
+    ):
+        self.scheduler = scheduler
+        self.service = self._service_instance(service_cls, service_args, service_kwargs)
+        self.sources: set[str] = set()
+        self.exclude: set[str] = set()
+
+    def _service_instance(
+        self, svc: type[IService] | IService, *service_args, **service_kwargs
+    ) -> IService:
+        """实例化服务"""
+        if isclass(svc):
+            return svc(*service_args, **service_kwargs)
+        else:
+            return svc
+
+    def listen(
+        self, *source_names: str, exclude: str | set[str] | None = None
+    ) -> EventLoopScheduler:
+        """
+        指定要监听的源
+        - '*' 表示所有源
+        - 可以传多个名字
+        - exclude 表示排除某些源
+        """
+        # 处理 sources
+        if not source_names:
+            self.sources = {"*"}  # 默认所有
+        else:
+            self.sources = set(source_names)
+
+        # 处理 exclude
+        if exclude:
+            if isinstance(exclude, str):
+                self.exclude = {exclude}
+            else:
+                self.exclude = set(exclude)
+
+        # 执行绑定
+        self.scheduler._bind_service(self.service, self.sources, self.exclude)
+        return self.scheduler
+
+    def listen_all(self) -> EventLoopScheduler:
+        """监听所有源（简洁版）"""
+        return self.listen("*")
+
+    def listen_only(self, *source_names: str) -> EventLoopScheduler:
+        """只监听指定的源（排除其他所有）"""
+        # 这种模式下，exclude 会自动设置为除了指定源之外的所有
+        all_sources = set(self.scheduler._listener_registry.keys())
+        self.exclude = all_sources - set(source_names)
+        return self.listen(*source_names)

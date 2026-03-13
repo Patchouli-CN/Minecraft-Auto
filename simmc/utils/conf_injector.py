@@ -144,7 +144,11 @@ class ConfigInject:
             fields_to_inject = self._fields or set(field_types.keys())
 
             with ConfigSession(
-                self.conf_path, instance, field_types, conf_name, fields_to_inject # type: ignore
+                self.conf_path,
+                instance,
+                field_types,
+                conf_name,
+                fields_to_inject,  # type: ignore
             ):
                 pass
 
