@@ -321,7 +321,7 @@ class _ServiceBinder:
                 self.exclude = set(exclude)
 
         # 执行绑定
-        self.scheduler._bind_service(self.service, self.sources, self.exclude)
+        self.scheduler._bind_service(self.service, self.sources, self.exclude) # pylint: disable=protected-access
         return self.scheduler
 
     def listen_all(self) -> EventLoopScheduler:
@@ -331,6 +331,6 @@ class _ServiceBinder:
     def listen_only(self, *source_names: str) -> EventLoopScheduler:
         """只监听指定的源（排除其他所有）"""
         # 这种模式下，exclude 会自动设置为除了指定源之外的所有
-        all_sources = set(self.scheduler._listener_registry.keys())
+        all_sources = set(self.scheduler._listener_registry.keys()) # pylint: disable=protected-access
         self.exclude = all_sources - set(source_names)
         return self.listen(*source_names)
