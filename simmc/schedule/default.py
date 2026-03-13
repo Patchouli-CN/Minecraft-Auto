@@ -284,10 +284,10 @@ class _ServiceBinder:
         *service_args,
         **service_kwargs,
     ):
-        self.scheduler = scheduler
-        self.service = self._service_instance(service_cls, service_args, service_kwargs)
-        self.sources: set[str] = set()
-        self.exclude: set[str] = set()
+        self._scheduler = scheduler
+        self._services = self._service_instance(service_cls, service_args, service_kwargs)
+        self._sources: set[str] = set()
+        self._exclude: set[str] = set()
 
     def _service_instance(
         self, svc: type[IService] | IService, *service_args, **service_kwargs
@@ -309,20 +309,20 @@ class _ServiceBinder:
         """
         # 处理 sources
         if not source_names:
-            self.sources = {"*"}  # 默认所有
+            self._sources = {"*"}  # 默认所有
         else:
-            self.sources = set(source_names)
+            self._sources = set(source_names)
 
         # 处理 exclude
         if exclude:
             if isinstance(exclude, str):
-                self.exclude = {exclude}
+                self._exclude = {exclude}
             else:
-                self.exclude = set(exclude)
+                self._exclude = set(exclude)
 
         # 执行绑定
-        self.scheduler._bind_service(self.service, self.sources, self.exclude) # pylint: disable=protected-access
-        return self.scheduler
+        self._scheduler._bind_service(self._services, self._sources, self._exclude) # pylint: disable=protected-access
+        return self._scheduler
 
     def listen_all(self) -> EventLoopScheduler:
         """监听所有源（简洁版）"""
@@ -331,6 +331,6 @@ class _ServiceBinder:
     def listen_only(self, *source_names: str) -> EventLoopScheduler:
         """只监听指定的源（排除其他所有）"""
         # 这种模式下，exclude 会自动设置为除了指定源之外的所有
-        all_sources = set(self.scheduler._listener_registry.keys()) # pylint: disable=protected-access
-        self.exclude = all_sources - set(source_names)
+        all_sources = set(self._scheduler._listener_registry.keys()) # pylint: disable=protected-access
+        self._exclude = all_sources - set(source_names)
         return self.listen(*source_names)
